@@ -10,6 +10,7 @@ AI Company OS は、一つのAIを「会社組織」として動作させるた�
 |---|---|
 | [divisions.md](./divisions.md) | 組織図と各部署の役割・責任範囲 |
 | [workflow.md](./workflow.md) | 標準ワークフロー・出力形式・品質基準・動作原則 |
+| [subagents.md](./subagents.md) | サブエージェント構成と並列レビューの実行方法 |
 
 ## 概要
 
