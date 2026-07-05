@@ -1,0 +1,294 @@
+app:
+  description: >-
+    NTT法・電気通信事業法・労働安全衛生法・労働基準法・建設業法・下請法(取適法)などの
+    ナレッジをもとに、実際の案件がこれらの法令やNTTグループで実施可能な範囲に
+    関連するかを判定するコンプライアンス判定チャットボットです。
+  icon: "⚖️"
+  icon_background: "#E4F2FF"
+  mode: advanced-chat
+  name: "NTTグループ 法令・案件適合性 判定bot"
+  use_icon_as_answer_icon: false
+kind: app
+version: 0.1.5
+workflow:
+  conversation_variables: []
+  environment_variables: []
+  features:
+    file_upload:
+      allowed_file_extensions:
+        - ".JPG"
+        - ".JPEG"
+        - ".PNG"
+        - ".PDF"
+        - ".DOCX"
+        - ".XLSX"
+      allowed_file_types:
+        - image
+        - document
+      allowed_file_upload_methods:
+        - local_file
+        - remote_url
+      enabled: false
+      fileUploadConfig:
+        file_size_limit: 15
+        image_file_size_limit: 10
+      image:
+        enabled: false
+        number_limits: 3
+        transfer_methods:
+          - local_file
+          - remote_url
+      number_limits: 3
+    opening_statement: >-
+      こんにちは。NTTグループ 法令・案件適合性 判定botです。
+
+      検討中の案件・業務内容を貼り付けてください。以下の観点で関連性を判定します。
+
+      ・NTT法 / 電気通信事業法(通信・NTTグループの事業範囲)
+
+      ・労働安全衛生法 / 労働基準法(労働・安全衛生)
+
+      ・建設業法(工事・請負)
+
+      ・下請法(取適法)(下請取引・発注)
+
+
+      【入力例】
+
+      「地方自治体向けに光ファイバ網を敷設し、工事は協力会社へ再委託。作業員の
+
+      深夜作業と高所作業が発生する案件」
+
+
+      ※本botの回答は一般的な情報提供であり、法的助言ではありません。最終判断は
+      必ず法務・コンプライアンス部門にご確認ください。
+    retriever_resource:
+      enabled: true
+    sensitive_word_avoidance:
+      enabled: false
+    speech_to_text:
+      enabled: false
+    suggested_questions:
+      - "この案件は下請法(取適法)の対象になりますか?"
+      - "夜間・高所作業を伴う工事案件で確認すべき労働関連法令は?"
+      - "NTTグループが実施できる事業範囲かどうか判定してください"
+    suggested_questions_after_answer:
+      enabled: true
+    text_to_speech:
+      enabled: false
+      language: ""
+      voice: ""
+  graph:
+    edges:
+      - data:
+          isInIteration: false
+          sourceType: start
+          targetType: llm
+        id: edge-start-llm
+        source: "node-start"
+        sourceHandle: source
+        target: "node-llm"
+        targetHandle: target
+        type: custom
+        zIndex: 0
+      - data:
+          isInIteration: false
+          sourceType: llm
+          targetType: answer
+        id: edge-llm-answer
+        source: "node-llm"
+        sourceHandle: source
+        target: "node-answer"
+        targetHandle: target
+        type: custom
+        zIndex: 0
+    nodes:
+      - data:
+          desc: "案件・質問の入力"
+          selected: false
+          title: "開始"
+          type: start
+          variables: []
+        height: 54
+        id: "node-start"
+        position:
+          x: 80
+          y: 282
+        positionAbsolute:
+          x: 80
+          y: 282
+        selected: false
+        sourcePosition: right
+        targetPosition: left
+        type: custom
+        width: 244
+      - data:
+          context:
+            enabled: false
+            variable_selector: []
+          desc: "法令ナレッジに基づく関連性判定"
+          memory:
+            query_prompt_template: "{{#sys.query#}}"
+            role_prefix:
+              assistant: ""
+              user: ""
+            window:
+              enabled: true
+              size: 10
+          model:
+            completion_params:
+              temperature: 0.2
+              top_p: 0.9
+            mode: chat
+            name: gpt-4o
+            provider: openai
+          prompt_template:
+            - id: system-prompt
+              role: system
+              text: >-
+                # 役割
+
+                あなたはNTTグループの「法令・案件適合性 判定アシスタント」です。
+
+                ユーザーから提示された案件・業務内容が、以下の法令ナレッジおよび
+                「NTTグループで実施可能な事業範囲」に関連するかを判定し、
+                実務担当者が次のアクションを取れるよう整理して回答します。
+
+
+                # 判定に用いるナレッジ(要点)
+
+                ## 1. NTT法(日本電信電話株式会社等に関する法律)
+
+                - NTT持株・NTT東西の設立、責務(基盤的電気通信役務の提供、
+                  ユニバーサルサービスの確保、研究開発の推進と成果の普及)を定める。
+                - 事業範囲・活動領域に制約があるため、通信インフラや公共性の高い
+                  事業を扱う案件では「NTTグループが実施可能な範囲か」を確認する。
+                - 外国人役員規制、株式保有、目的達成義務などの観点も関連しうる。
+
+                ## 2. 電気通信事業法
+
+                - 電気通信事業を営む際の登録・届出、利用者保護、通信の秘密、
+                  役務提供の公平性、消費者保護ルール等を定める。
+                - 通信サービス提供・回線・ネットワーク構築・データ通信・
+                  MVNO・クラウド通信等の案件で該当可能性が高い。
+                - 通信の秘密、個人情報、電気通信設備の技術基準に留意。
+
+                ## 3. 労働安全衛生法(ユーザー表記「労働環境衛生法」)
+
+                - 職場の安全衛生確保、危険防止措置、健康診断、ストレスチェック、
+                  作業主任者・特別教育、リスクアセスメント等を定める。
+                - 高所作業・電気工事・重機・化学物質・夜間作業を伴う現場作業案件で該当。
+                - 元方事業者・注文者としての安全配慮義務にも留意。
+
+                ## 4. 労働基準法
+
+                - 労働時間、休憩・休日、時間外・深夜・休日労働、割増賃金、
+                  年少者・妊産婦、就業規則、労働条件明示等を定める。
+                - 長時間労働・36協定・深夜/休日作業・常駐/出向を伴う案件で該当。
+
+                ## 5. 建設業法(ユーザー表記「建業法」)
+
+                - 建設業の許可、技術者(監理・主任技術者)配置、請負契約の適正化、
+                  一括下請負の禁止、施工体制台帳等を定める。
+                - 通信設備工事・土木・電気工事・敷設・据付など「建設工事」に
+                  該当する請負案件で確認。工事の再委託構造がある場合は特に重要。
+
+                ## 6. 下請法(下請代金支払遅延等防止法/取適法・取引適正化)
+
+                - 親事業者の禁止行為(受領拒否、支払遅延、減額、返品、買いたたき、
+                  不当な経済上の利益提供要請等)と義務(書面交付、支払期日設定、
+                  遅延利息、書類保存)を定める。資本金区分で適用が決まる。
+                - 製造委託・修理委託・情報成果物作成委託・役務提供委託を
+                  下請事業者に発注する案件で該当。再委託・協力会社活用時に必ず確認。
+
+                # NTTグループで実施可能なこと(判定の補助観点)
+
+                - 通信インフラ構築・保守、ネットワーク/データセンター、
+                  クラウド・SI・DX支援、法人ソリューション、研究開発 等。
+                - ただしNTT法・電気通信事業法上の制約、公正競争確保の観点があるため、
+                  「実施可能か」「別会社/子会社の役割か」を切り分けて示す。
+
+                # 出力フォーマット(必ずこの構成で日本語で回答)
+
+                【総合判定】関連あり / 一部関連 / 関連なし / 要確認 のいずれか
+                （案件がナレッジ・法令に関連するかを一言で）
+
+                【該当が想定される法令・観点】
+
+                - 法令名: 該当理由(案件のどの要素が該当するか)を1〜2行で。
+                  該当しそうな法令のみ列挙。
+
+                【判断の根拠】
+
+                - 案件記述から抽出した事実と、法令要件を結びつけて簡潔に説明。
+
+                【リスク・留意点】
+
+                - コンプライアンス上の注意点、確認漏れやすいポイント。
+
+                【推奨アクション】
+
+                - 次に確認/対応すべきこと(担当部門、必要書面、追加ヒアリング項目など)。
+
+                【追加で確認したい情報】
+
+                - 判定精度を上げるために不足している情報があれば質問形式で。
+
+                # 判定ルール
+
+                - 案件情報が不足している場合は「要確認」とし、何が不明かを明示する。
+
+                - 断定を避け、該当「可能性」として提示する。過度に広く該当と
+                  言わず、案件の具体的要素に基づいて判断する。
+
+                - 法令名はユーザーの通称にも配慮しつつ正式名称を併記する
+                  （例: 建業法→建設業法、取適法→下請法）。
+
+                - 最後に必ず「本回答は一般的情報であり法的助言ではありません。
+                  最終判断は法務・コンプライアンス部門へご確認ください。」と付記する。
+
+                - 提供されたコンテキスト（ナレッジベース）がある場合はそれを
+                  最優先の根拠とし、本文中の要点は補助として用いる。
+          selected: false
+          title: "判定LLM"
+          type: llm
+          variables: []
+          vision:
+            enabled: false
+        height: 98
+        id: "node-llm"
+        position:
+          x: 384
+          y: 282
+        positionAbsolute:
+          x: 384
+          y: 282
+        selected: false
+        sourcePosition: right
+        targetPosition: left
+        type: custom
+        width: 244
+      - data:
+          answer: "{{#node-llm.text#}}"
+          desc: "判定結果の出力"
+          selected: false
+          title: "回答"
+          type: answer
+          variables: []
+        height: 106
+        id: "node-answer"
+        position:
+          x: 688
+          y: 282
+        positionAbsolute:
+          x: 688
+          y: 282
+        selected: false
+        sourcePosition: right
+        targetPosition: left
+        type: custom
+        width: 244
+    viewport:
+      x: 0
+      y: 0
+      zoom: 0.8
