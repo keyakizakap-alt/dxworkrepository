@@ -1,0 +1,18 @@
+{
+  "name": "dx-copilot",
+  "version": "1.0.0",
+  "description": "DX Copilot — 中小企業向け「自動化を自分で提案するAI業務OS」。LLM活用・業務自動化・自動化発見エンジンを1つのプロダクトで実現するAIハッカソン成果物。",
+  "type": "module",
+  "private": true,
+  "main": "server.js",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "start": "node server.js",
+    "test": "node --test test/*.test.js"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.65.0"
+  }
+}
