@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DX Copilot — 自動化を自分で提案するAI業務OS</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="app-shell">
+
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-mark" aria-hidden="true">DX</div>
+      <div class="brand-text">
+        <div class="brand-name">DX Copilot</div>
+        <div class="brand-sub">AI業務自動化OS</div>
+      </div>
+    </div>
+
+    <nav class="nav" id="nav">
+      <a class="nav-item" data-route="dashboard" href="#dashboard">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="8" height="8" rx="1.5"/><rect x="13" y="3" width="8" height="5" rx="1.5"/><rect x="13" y="11" width="8" height="10" rx="1.5"/><rect x="3" y="14" width="8" height="7" rx="1.5"/></svg>
+        <span>ダッシュボード</span>
+      </a>
+      <a class="nav-item" data-route="analyze" href="#analyze">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 4h16v12H8l-4 4V4z"/><line x1="7.5" y1="8" x2="16.5" y2="8"/><line x1="7.5" y1="11.5" x2="14" y2="11.5"/></svg>
+        <span>AI分析</span>
+      </a>
+      <a class="nav-item" data-route="pipelines" href="#pipelines">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="5" cy="6" r="2.4"/><circle cx="12" cy="18" r="2.4"/><circle cx="19" cy="6" r="2.4"/><path d="M7.2 7 10.5 16.5M16.8 7 13.5 16.5"/></svg>
+        <span>自動化パイプライン</span>
+      </a>
+      <a class="nav-item" data-route="discover" href="#discover">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><line x1="16.2" y1="16.2" x2="21" y2="21"/><path d="M8.5 11 10 12.5 13.5 9"/></svg>
+        <span>AI自動化発見</span>
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <p class="sidebar-hint">業務ログをAIが分析し、<br>自動化の機会を発見します。</p>
+    </div>
+  </aside>
+
+  <div class="main-wrap">
+    <header class="topbar">
+      <h1 id="viewTitle">ダッシュボード</h1>
+      <div class="topbar-right">
+        <span class="mode-badge mode-badge-pending" id="modeBadge">
+          <span class="mode-dot"></span><span id="modeBadgeText">接続確認中...</span>
+        </span>
+      </div>
+    </header>
+
+    <main class="content" id="content">
+
+      <!-- ダッシュボード -->
+      <section id="view-dashboard" class="view">
+        <div class="metrics-grid">
+          <div class="metric-card">
+            <div class="metric-icon">⏱</div>
+            <div class="metric-label">削減時間</div>
+            <div class="metric-value-row"><span class="metric-value" id="metricSavedMinutes">0</span><span class="metric-unit">分</span></div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-icon">¥</div>
+            <div class="metric-label">削減コスト</div>
+            <div class="metric-value-row"><span class="metric-value" id="metricSavedCost">0</span><span class="metric-unit">円</span></div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-icon">▶</div>
+            <div class="metric-label">総実行数</div>
+            <div class="metric-value-row"><span class="metric-value" id="metricTotalRuns">0</span><span class="metric-unit">回</span></div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-icon">✓</div>
+            <div class="metric-label">成功率</div>
+            <div class="metric-value-row"><span class="metric-value" id="metricSuccessRate">0</span><span class="metric-unit">%</span></div>
+          </div>
+        </div>
+
+        <div class="panels-grid">
+          <div class="panel">
+            <div class="panel-header"><h2>週次実行トレンド</h2></div>
+            <div class="chart-wrap" id="weeklyChart"></div>
+          </div>
+          <div class="panel">
+            <div class="panel-header"><h2>直近の実行履歴</h2></div>
+            <div class="table-wrap">
+              <table class="data-table">
+                <thead><tr><th>パイプライン</th><th>開始日時</th><th>所要時間</th><th>削減時間</th><th>状態</th></tr></thead>
+                <tbody id="runsTableBody">
+                  <tr><td colspan="5" class="empty-row">読み込み中...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- AI分析 -->
+      <section id="view-analyze" class="view">
+        <div class="panel">
+          <div class="panel-header">
+            <h2>テキストを分析</h2>
+            <div class="panel-actions">
+              <button id="btnLoadSample" class="btn btn-ghost" type="button">サンプルを読み込む</button>
+            </div>
+          </div>
+          <textarea id="analyzeInput" class="textarea" placeholder="議事録・メール・レポートなどのテキストを貼り付けてください..." rows="8"></textarea>
+          <div class="panel-actions analyze-controls">
+            <select id="analyzeType" class="select">
+              <option value="minutes">議事録</option>
+              <option value="email">メール</option>
+              <option value="report">レポート</option>
+            </select>
+            <button id="btnAnalyze" class="btn btn-primary" type="button">AI分析</button>
+          </div>
+        </div>
+
+        <div id="analyzeLoading" class="loading-block hidden">
+          <div class="spinner"></div><span>AIが分析しています...</span>
+        </div>
+
+        <div id="analyzeResults" class="analyze-results hidden">
+          <div class="panel">
+            <h3>要約</h3>
+            <p id="resSummary" class="summary-text"></p>
+            <span class="badge" id="resSentiment"></span>
+          </div>
+
+          <div class="result-grid">
+            <div class="panel">
+              <h3>決定事項</h3>
+              <ul class="list" id="resDecisions"></ul>
+            </div>
+            <div class="panel">
+              <h3>リスク</h3>
+              <ul class="list list-risk" id="resRisks"></ul>
+            </div>
+          </div>
+
+          <div class="panel">
+            <h3>タスク</h3>
+            <div class="table-wrap">
+              <table class="data-table">
+                <thead><tr><th>タスク</th><th>担当者</th><th>期限</th><th>優先度</th></tr></thead>
+                <tbody id="resTasks"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel chat-panel">
+          <h2>チャットQ&amp;A</h2>
+          <p class="chat-hint">分析結果について、AIに質問できます。</p>
+          <div class="chat-messages" id="chatMessages"></div>
+          <div class="chat-input-row">
+            <input type="text" id="chatInput" class="input" placeholder="例: 最も優先度が高いタスクは？">
+            <button id="btnChatSend" class="btn btn-primary" type="button">送信</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- 自動化パイプライン -->
+      <section id="view-pipelines" class="view">
+        <div class="panel-header-row">
+          <h2>パイプライン一覧</h2>
+        </div>
+        <div id="pipelinesList" class="pipelines-list">
+          <p class="empty-state">読み込み中...</p>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header"><h2>実行履歴</h2></div>
+          <div class="table-wrap">
+            <table class="data-table">
+              <thead><tr><th>パイプライン</th><th>開始日時</th><th>所要時間</th><th>削減時間</th><th>状態</th></tr></thead>
+              <tbody id="pipelineRunsBody">
+                <tr><td colspan="5" class="empty-row">読み込み中...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- AI自動化発見 -->
+      <section id="view-discover" class="view">
+        <div class="panel intro-panel">
+          <h2>AI自動化発見エンジン</h2>
+          <p>業務ログをAIが分析し、自動化できる業務を自動で発見します。<br>
+          気になる提案があれば、ワンクリックでパイプライン化して即実行できます。</p>
+          <button id="btnDiscover" class="btn btn-primary btn-lg" type="button">業務ログをAI分析</button>
+        </div>
+
+        <div id="discoverLoading" class="loading-block hidden">
+          <div class="spinner"></div><span>業務ログを解析し、自動化の機会を探しています...</span>
+        </div>
+
+        <div id="discoverResults" class="suggestions-grid"></div>
+      </section>
+
+    </main>
+  </div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<script src="app.js"></script>
+</body>
+</html>
