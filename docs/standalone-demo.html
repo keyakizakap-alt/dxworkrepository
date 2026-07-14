@@ -1,0 +1,2646 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+<title>DX Copilot デモ</title>
+<style>
+/* ==========================================================================
+   DX Copilot — SPA スタイルシート
+   ダークテーマ / シアンアクセント / CDN・外部フォント不使用
+   ========================================================================== */
+
+:root {
+  --bg: #0f1420;
+  --bg-elevated: #141a29;
+  --panel: #161d2e;
+  --panel-hover: #1a2236;
+  --border: #232c42;
+  --border-soft: #1c2438;
+  --text: #e7ebf4;
+  --text-secondary: #9aa4bd;
+  --text-muted: #6b7590;
+  --accent: #22d3ee;
+  --accent-strong: #06b6d4;
+  --accent-soft: rgba(34, 211, 238, 0.12);
+  --accent-soft-strong: rgba(34, 211, 238, 0.22);
+  --success: #34d399;
+  --success-soft: rgba(52, 211, 153, 0.14);
+  --warning: #fbbf24;
+  --warning-soft: rgba(251, 191, 36, 0.14);
+  --danger: #f87171;
+  --danger-soft: rgba(248, 113, 113, 0.14);
+  --radius-lg: 16px;
+  --radius-md: 12px;
+  --radius-sm: 8px;
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.24), 0 8px 24px -12px rgba(0, 0, 0, 0.5);
+  --transition: 160ms cubic-bezier(0.4, 0, 0.2, 1);
+  --sidebar-w: 248px;
+  --font: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 14px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+a { color: inherit; text-decoration: none; }
+ul { margin: 0; padding: 0; list-style: none; }
+button { font-family: inherit; }
+
+::selection {
+  background: var(--accent-soft-strong);
+}
+
+/* ---------------------------- Layout ---------------------------- */
+
+.app-shell {
+  display: flex;
+  min-height: 100vh;
+}
+
+.sidebar {
+  width: var(--sidebar-w);
+  flex-shrink: 0;
+  background: var(--bg-elevated);
+  border-right: 1px solid var(--border-soft);
+  display: flex;
+  flex-direction: column;
+  padding: 22px 16px;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 4px 8px 24px;
+}
+
+.brand-mark {
+  width: 38px;
+  height: 38px;
+  border-radius: var(--radius-sm);
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-strong) 100%);
+  color: #06131a;
+  font-weight: 800;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  letter-spacing: -0.5px;
+  flex-shrink: 0;
+}
+
+.brand-name {
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--text);
+  letter-spacing: -0.2px;
+}
+
+.brand-sub {
+  font-size: 11.5px;
+  color: var(--text-muted);
+  margin-top: 1px;
+}
+
+.nav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: 4px;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  font-size: 13.5px;
+  font-weight: 500;
+  transition: background var(--transition), color var(--transition);
+}
+
+.nav-icon {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+.nav-item:hover {
+  background: var(--panel-hover);
+  color: var(--text);
+}
+
+.nav-item.active {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.sidebar-footer {
+  margin-top: auto;
+  padding: 14px 12px 4px;
+  border-top: 1px solid var(--border-soft);
+}
+
+.sidebar-hint {
+  font-size: 11.5px;
+  color: var(--text-muted);
+  line-height: 1.6;
+  margin: 12px 0 0;
+}
+
+.main-wrap {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 32px;
+  border-bottom: 1px solid var(--border-soft);
+  background: rgba(15, 20, 32, 0.7);
+  backdrop-filter: blur(6px);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.topbar h1 {
+  font-size: 19px;
+  font-weight: 700;
+  margin: 0;
+  letter-spacing: -0.2px;
+}
+
+.mode-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 13px;
+  border-radius: 999px;
+  font-size: 12.5px;
+  font-weight: 600;
+  border: 1px solid var(--border);
+  background: var(--panel);
+  color: var(--text-secondary);
+}
+
+.mode-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--text-muted);
+}
+
+.mode-badge-pending .mode-dot { background: var(--text-muted); }
+
+.mode-badge-demo {
+  color: var(--warning);
+  border-color: rgba(251, 191, 36, 0.28);
+  background: var(--warning-soft);
+}
+.mode-badge-demo .mode-dot { background: var(--warning); box-shadow: 0 0 0 3px rgba(251,191,36,0.18); }
+
+.mode-badge-live {
+  color: var(--success);
+  border-color: rgba(52, 211, 153, 0.28);
+  background: var(--success-soft);
+}
+.mode-badge-live .mode-dot { background: var(--success); box-shadow: 0 0 0 3px rgba(52,211,153,0.18); }
+
+.content {
+  flex: 1;
+  padding: 28px 32px 48px;
+  max-width: 1180px;
+  width: 100%;
+}
+
+.view { display: none; }
+.view.active { display: block; animation: fadeIn 220ms ease; }
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ---------------------------- Metrics ---------------------------- */
+
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.metric-card {
+  background: var(--panel);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-lg);
+  padding: 20px 20px 18px;
+  box-shadow: var(--shadow-card);
+  transition: transform var(--transition), border-color var(--transition);
+}
+
+.metric-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(34, 211, 238, 0.28);
+}
+
+.metric-icon {
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 700;
+  margin-bottom: 14px;
+}
+
+.metric-label {
+  font-size: 12.5px;
+  color: var(--text-secondary);
+  font-weight: 500;
+  margin-bottom: 6px;
+}
+
+.metric-value-row {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.metric-value {
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+
+.metric-unit {
+  font-size: 13px;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+/* ---------------------------- Panels ---------------------------- */
+
+.panels-grid {
+  display: grid;
+  grid-template-columns: 1.1fr 1.6fr;
+  gap: 20px;
+  align-items: start;
+}
+
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-lg);
+  padding: 22px 22px 24px;
+  box-shadow: var(--shadow-card);
+  margin-bottom: 20px;
+}
+
+.panel:last-child { margin-bottom: 0; }
+
+.panel h2 {
+  font-size: 15px;
+  font-weight: 700;
+  margin: 0;
+}
+
+.panel h3 {
+  font-size: 13.5px;
+  font-weight: 700;
+  margin: 0 0 12px;
+  color: var(--text);
+}
+
+.panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.panel-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.panel-header-row h2 {
+  font-size: 17px;
+  font-weight: 700;
+  margin: 0;
+}
+
+.panel-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.analyze-controls { margin-top: 14px; }
+
+/* ---------------------------- Chart ---------------------------- */
+
+.chart-wrap {
+  display: flex;
+  align-items: flex-end;
+  min-height: 180px;
+}
+
+.bar-chart-svg { width: 100%; height: 180px; overflow: visible; }
+
+/* ---------------------------- Table ---------------------------- */
+
+.table-wrap { overflow-x: auto; }
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.data-table th {
+  text-align: left;
+  font-weight: 600;
+  color: var(--text-muted);
+  font-size: 11.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  padding: 0 12px 10px;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+
+.data-table td {
+  padding: 11px 12px;
+  border-bottom: 1px solid var(--border-soft);
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.data-table tr:last-child td { border-bottom: none; }
+.data-table td:first-child, .data-table th:first-child { color: var(--text); font-weight: 500; }
+
+.empty-row, .empty-state {
+  color: var(--text-muted);
+  text-align: center;
+  padding: 20px 0;
+}
+
+/* ---------------------------- Badges ---------------------------- */
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 11.5px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.badge-success { background: var(--success-soft); color: var(--success); }
+.badge-danger { background: var(--danger-soft); color: var(--danger); }
+.badge-warning { background: var(--warning-soft); color: var(--warning); }
+.badge-neutral { background: var(--panel-hover); color: var(--text-secondary); }
+.badge-accent { background: var(--accent-soft); color: var(--accent); }
+
+/* ---------------------------- Buttons / Inputs ---------------------------- */
+
+.btn {
+  border: 1px solid var(--border);
+  background: var(--panel-hover);
+  color: var(--text);
+  padding: 9px 16px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background var(--transition), border-color var(--transition), transform var(--transition), opacity var(--transition);
+  white-space: nowrap;
+}
+
+.btn:hover { background: var(--border); border-color: rgba(255,255,255,0.14); }
+.btn:active { transform: scale(0.98); }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+.btn-primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #04222a;
+}
+.btn-primary:hover { background: var(--accent-strong); border-color: var(--accent-strong); }
+
+.btn-ghost {
+  background: transparent;
+  border-color: var(--border);
+  color: var(--text-secondary);
+}
+.btn-ghost:hover { color: var(--text); border-color: rgba(255,255,255,0.2); }
+
+.btn-lg { padding: 13px 26px; font-size: 14px; }
+
+.btn-sm { padding: 6px 12px; font-size: 12px; }
+
+.textarea, .input, .select {
+  width: 100%;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  font-size: 13.5px;
+  font-family: inherit;
+  resize: vertical;
+  transition: border-color var(--transition);
+}
+
+.textarea:focus, .input:focus, .select:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.select { width: auto; cursor: pointer; }
+.input { flex: 1; }
+
+/* ---------------------------- Loading ---------------------------- */
+
+.loading-block {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 28px 0;
+  color: var(--text-secondary);
+  font-size: 13.5px;
+  justify-content: center;
+}
+
+.hidden { display: none !important; }
+
+.spinner {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2.5px solid var(--border);
+  border-top-color: var(--accent);
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ---------------------------- Analyze view ---------------------------- */
+
+.summary-text {
+  color: var(--text-secondary);
+  margin: 0 0 12px;
+  line-height: 1.75;
+}
+
+.result-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.list li {
+  position: relative;
+  padding: 7px 0 7px 18px;
+  color: var(--text-secondary);
+  font-size: 13.5px;
+  border-bottom: 1px solid var(--border-soft);
+}
+.list li:last-child { border-bottom: none; }
+.list li::before {
+  content: "";
+  position: absolute;
+  left: 2px;
+  top: 15px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+.list-risk li::before { background: var(--danger); }
+
+.priority-high { background: var(--danger-soft); color: var(--danger); }
+.priority-medium { background: var(--warning-soft); color: var(--warning); }
+.priority-low { background: var(--success-soft); color: var(--success); }
+
+.sentiment-positive { background: var(--success-soft); color: var(--success); }
+.sentiment-neutral { background: var(--panel-hover); color: var(--text-secondary); }
+.sentiment-negative { background: var(--danger-soft); color: var(--danger); }
+
+/* ---------------------------- Chat ---------------------------- */
+
+.chat-panel h2 { margin-bottom: 4px; }
+.chat-hint { color: var(--text-muted); font-size: 12.5px; margin: 0 0 14px; }
+
+.chat-messages {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 320px;
+  overflow-y: auto;
+  margin-bottom: 14px;
+  padding-right: 4px;
+}
+
+.chat-msg {
+  max-width: 78%;
+  padding: 10px 14px;
+  border-radius: var(--radius-md);
+  font-size: 13.5px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+
+.chat-msg-user {
+  align-self: flex-end;
+  background: var(--accent-soft);
+  color: var(--text);
+  border-bottom-right-radius: 4px;
+}
+
+.chat-msg-assistant {
+  align-self: flex-start;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-soft);
+  color: var(--text-secondary);
+  border-bottom-left-radius: 4px;
+}
+
+.chat-msg-pending { opacity: 0.6; }
+
+.chat-input-row { display: flex; gap: 10px; }
+
+/* ---------------------------- Pipelines ---------------------------- */
+
+.pipelines-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.pipeline-card {
+  background: var(--panel);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-lg);
+  padding: 22px;
+  box-shadow: var(--shadow-card);
+  transition: border-color var(--transition);
+}
+
+.pipeline-card:hover { border-color: rgba(34, 211, 238, 0.24); }
+
+.pipeline-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 8px;
+}
+
+.pipeline-card-header h3 {
+  font-size: 15.5px;
+  font-weight: 700;
+  margin: 0;
+}
+
+.pipeline-desc {
+  color: var(--text-secondary);
+  font-size: 13px;
+  margin: 0 0 14px;
+  line-height: 1.6;
+}
+
+.pipeline-trigger {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12.5px;
+  color: var(--text-muted);
+  margin-bottom: 16px;
+}
+
+.tag {
+  background: var(--panel-hover);
+  color: var(--text-secondary);
+  padding: 2px 9px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.flow-diagram {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0;
+  margin-bottom: 4px;
+}
+
+.flow-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 14px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background: var(--bg-elevated);
+  min-width: 108px;
+  text-align: center;
+  transition: border-color var(--transition), background var(--transition), transform var(--transition);
+}
+
+.flow-step-name {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.flow-step-status {
+  font-size: 10.5px;
+  color: var(--text-muted);
+  min-height: 13px;
+}
+
+.flow-step.active {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  transform: scale(1.04);
+}
+.flow-step.active .flow-step-name { color: var(--accent); }
+
+.flow-step.done {
+  border-color: rgba(52, 211, 153, 0.4);
+  background: var(--success-soft);
+}
+.flow-step.done .flow-step-name { color: var(--success); }
+.flow-step.done .flow-step-status { color: var(--success); }
+
+.flow-step.failed {
+  border-color: rgba(248, 113, 113, 0.4);
+  background: var(--danger-soft);
+}
+.flow-step.failed .flow-step-name { color: var(--danger); }
+.flow-step.failed .flow-step-status { color: var(--danger); }
+
+.flow-arrow {
+  color: var(--text-muted);
+  padding: 0 10px;
+  font-size: 15px;
+  flex-shrink: 0;
+}
+
+.run-log {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border-soft);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.run-log-item {
+  font-size: 12.5px;
+  color: var(--text-muted);
+  display: flex;
+  gap: 8px;
+}
+
+.run-log-item .rl-name { color: var(--text-secondary); font-weight: 600; min-width: 110px; }
+
+/* ---------------------------- Discover ---------------------------- */
+
+.intro-panel { text-align: left; }
+.intro-panel p {
+  color: var(--text-secondary);
+  margin: 10px 0 20px;
+  max-width: 640px;
+  line-height: 1.8;
+}
+
+.suggestions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 18px;
+  margin-top: 20px;
+}
+
+.suggestion-card {
+  background: var(--panel);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-lg);
+  padding: 22px;
+  box-shadow: var(--shadow-card);
+  display: flex;
+  flex-direction: column;
+  transition: transform var(--transition), border-color var(--transition);
+}
+
+.suggestion-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(34, 211, 238, 0.28);
+}
+
+.suggestion-card h3 {
+  font-size: 15px;
+  font-weight: 700;
+  margin: 0 0 8px;
+}
+
+.suggestion-desc {
+  color: var(--text-secondary);
+  font-size: 13px;
+  line-height: 1.65;
+  margin: 0 0 18px;
+  flex: 1;
+}
+
+.suggestion-metric {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+
+.suggestion-metric .big-num {
+  font-size: 30px;
+  font-weight: 800;
+  color: var(--accent);
+  letter-spacing: -0.5px;
+  font-variant-numeric: tabular-nums;
+}
+
+.suggestion-metric .big-num-label {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.confidence-row {
+  margin-bottom: 18px;
+}
+
+.confidence-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11.5px;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+
+.confidence-bar-bg {
+  height: 6px;
+  border-radius: 999px;
+  background: var(--border);
+  overflow: hidden;
+}
+
+.confidence-bar-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--accent-strong), var(--accent));
+  width: 0%;
+  transition: width 800ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-adopt { width: 100%; }
+.btn-adopt.adopted { background: var(--success-soft); border-color: rgba(52,211,153,0.35); color: var(--success); cursor: default; }
+
+/* ---------------------------- Toast ---------------------------- */
+
+.toast-container {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  z-index: 1000;
+  max-width: 360px;
+}
+
+.toast {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+  border-radius: var(--radius-sm);
+  padding: 13px 16px;
+  font-size: 13px;
+  color: var(--text);
+  box-shadow: 0 8px 28px -8px rgba(0,0,0,0.55);
+  animation: toastIn 220ms ease;
+}
+
+.toast-success { border-left-color: var(--success); }
+.toast-error { border-left-color: var(--danger); }
+.toast-info { border-left-color: var(--accent); }
+
+.toast.toast-out { animation: toastOut 200ms ease forwards; }
+
+@keyframes toastIn {
+  from { opacity: 0; transform: translateY(8px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes toastOut {
+  to { opacity: 0; transform: translateY(8px) scale(0.98); }
+}
+
+/* ---------------------------- Responsive ---------------------------- */
+
+@media (max-width: 980px) {
+  .metrics-grid { grid-template-columns: repeat(2, 1fr); }
+  .panels-grid { grid-template-columns: 1fr; }
+  .result-grid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 680px) {
+  .sidebar { display: none; }
+  .content { padding: 20px; }
+  .metrics-grid { grid-template-columns: 1fr 1fr; }
+}
+
+/* ---------------------------- Standalone demo note ---------------------------- */
+
+.topbar-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 5px;
+}
+
+.standalone-note {
+  font-size: 10.5px;
+  color: var(--text-muted);
+  letter-spacing: 0.1px;
+}
+</style>
+<div class="app-shell">
+
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-mark" aria-hidden="true">DX</div>
+      <div class="brand-text">
+        <div class="brand-name">DX Copilot</div>
+        <div class="brand-sub">AI業務自動化OS</div>
+      </div>
+    </div>
+
+    <nav class="nav" id="nav">
+      <a class="nav-item" data-route="dashboard" href="#dashboard">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="8" height="8" rx="1.5"/><rect x="13" y="3" width="8" height="5" rx="1.5"/><rect x="13" y="11" width="8" height="10" rx="1.5"/><rect x="3" y="14" width="8" height="7" rx="1.5"/></svg>
+        <span>ダッシュボード</span>
+      </a>
+      <a class="nav-item" data-route="analyze" href="#analyze">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 4h16v12H8l-4 4V4z"/><line x1="7.5" y1="8" x2="16.5" y2="8"/><line x1="7.5" y1="11.5" x2="14" y2="11.5"/></svg>
+        <span>AI分析</span>
+      </a>
+      <a class="nav-item" data-route="pipelines" href="#pipelines">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="5" cy="6" r="2.4"/><circle cx="12" cy="18" r="2.4"/><circle cx="19" cy="6" r="2.4"/><path d="M7.2 7 10.5 16.5M16.8 7 13.5 16.5"/></svg>
+        <span>自動化パイプライン</span>
+      </a>
+      <a class="nav-item" data-route="discover" href="#discover">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><line x1="16.2" y1="16.2" x2="21" y2="21"/><path d="M8.5 11 10 12.5 13.5 9"/></svg>
+        <span>AI自動化発見</span>
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <p class="sidebar-hint">業務ログをAIが分析し、<br>自動化の機会を発見します。</p>
+    </div>
+  </aside>
+
+  <div class="main-wrap">
+    <header class="topbar">
+      <h1 id="viewTitle">ダッシュボード</h1>
+      <div class="topbar-right">
+        <span class="mode-badge mode-badge-pending" id="modeBadge">
+          <span class="mode-dot"></span><span id="modeBadgeText">接続確認中...</span>
+        </span>
+        <span class="standalone-note">スタンドアロンデモ（バックエンドをブラウザ内で再現）</span>
+      </div>
+    </header>
+
+    <main class="content" id="content">
+
+      <!-- ダッシュボード -->
+      <section id="view-dashboard" class="view">
+        <div class="metrics-grid">
+          <div class="metric-card">
+            <div class="metric-icon">⏱</div>
+            <div class="metric-label">削減時間</div>
+            <div class="metric-value-row"><span class="metric-value" id="metricSavedMinutes">0</span><span class="metric-unit">分</span></div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-icon">¥</div>
+            <div class="metric-label">削減コスト</div>
+            <div class="metric-value-row"><span class="metric-value" id="metricSavedCost">0</span><span class="metric-unit">円</span></div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-icon">▶</div>
+            <div class="metric-label">総実行数</div>
+            <div class="metric-value-row"><span class="metric-value" id="metricTotalRuns">0</span><span class="metric-unit">回</span></div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-icon">✓</div>
+            <div class="metric-label">成功率</div>
+            <div class="metric-value-row"><span class="metric-value" id="metricSuccessRate">0</span><span class="metric-unit">%</span></div>
+          </div>
+        </div>
+
+        <div class="panels-grid">
+          <div class="panel">
+            <div class="panel-header"><h2>週次実行トレンド</h2></div>
+            <div class="chart-wrap" id="weeklyChart"></div>
+          </div>
+          <div class="panel">
+            <div class="panel-header"><h2>直近の実行履歴</h2></div>
+            <div class="table-wrap">
+              <table class="data-table">
+                <thead><tr><th>パイプライン</th><th>開始日時</th><th>所要時間</th><th>削減時間</th><th>状態</th></tr></thead>
+                <tbody id="runsTableBody">
+                  <tr><td colspan="5" class="empty-row">読み込み中...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- AI分析 -->
+      <section id="view-analyze" class="view">
+        <div class="panel">
+          <div class="panel-header">
+            <h2>テキストを分析</h2>
+            <div class="panel-actions">
+              <button id="btnLoadSample" class="btn btn-ghost" type="button">サンプルを読み込む</button>
+            </div>
+          </div>
+          <textarea id="analyzeInput" class="textarea" placeholder="議事録・メール・レポートなどのテキストを貼り付けてください..." rows="8"></textarea>
+          <div class="panel-actions analyze-controls">
+            <select id="analyzeType" class="select">
+              <option value="minutes">議事録</option>
+              <option value="email">メール</option>
+              <option value="report">レポート</option>
+            </select>
+            <button id="btnAnalyze" class="btn btn-primary" type="button">AI分析</button>
+          </div>
+        </div>
+
+        <div id="analyzeLoading" class="loading-block hidden">
+          <div class="spinner"></div><span>AIが分析しています...</span>
+        </div>
+
+        <div id="analyzeResults" class="analyze-results hidden">
+          <div class="panel">
+            <h3>要約</h3>
+            <p id="resSummary" class="summary-text"></p>
+            <span class="badge" id="resSentiment"></span>
+          </div>
+
+          <div class="result-grid">
+            <div class="panel">
+              <h3>決定事項</h3>
+              <ul class="list" id="resDecisions"></ul>
+            </div>
+            <div class="panel">
+              <h3>リスク</h3>
+              <ul class="list list-risk" id="resRisks"></ul>
+            </div>
+          </div>
+
+          <div class="panel">
+            <h3>タスク</h3>
+            <div class="table-wrap">
+              <table class="data-table">
+                <thead><tr><th>タスク</th><th>担当者</th><th>期限</th><th>優先度</th></tr></thead>
+                <tbody id="resTasks"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel chat-panel">
+          <h2>チャットQ&amp;A</h2>
+          <p class="chat-hint">分析結果について、AIに質問できます。</p>
+          <div class="chat-messages" id="chatMessages"></div>
+          <div class="chat-input-row">
+            <input type="text" id="chatInput" class="input" placeholder="例: 最も優先度が高いタスクは？">
+            <button id="btnChatSend" class="btn btn-primary" type="button">送信</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- 自動化パイプライン -->
+      <section id="view-pipelines" class="view">
+        <div class="panel-header-row">
+          <h2>パイプライン一覧</h2>
+        </div>
+        <div id="pipelinesList" class="pipelines-list">
+          <p class="empty-state">読み込み中...</p>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header"><h2>実行履歴</h2></div>
+          <div class="table-wrap">
+            <table class="data-table">
+              <thead><tr><th>パイプライン</th><th>開始日時</th><th>所要時間</th><th>削減時間</th><th>状態</th></tr></thead>
+              <tbody id="pipelineRunsBody">
+                <tr><td colspan="5" class="empty-row">読み込み中...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- AI自動化発見 -->
+      <section id="view-discover" class="view">
+        <div class="panel intro-panel">
+          <h2>AI自動化発見エンジン</h2>
+          <p>業務ログをAIが分析し、自動化できる業務を自動で発見します。<br>
+          気になる提案があれば、ワンクリックでパイプライン化して即実行できます。</p>
+          <button id="btnDiscover" class="btn btn-primary btn-lg" type="button">業務ログをAI分析</button>
+        </div>
+
+        <div id="discoverLoading" class="loading-block hidden">
+          <div class="spinner"></div><span>業務ログを解析し、自動化の機会を探しています...</span>
+        </div>
+
+        <div id="discoverResults" class="suggestions-grid"></div>
+      </section>
+
+    </main>
+  </div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+<script>
+// ブラウザ内モックバックエンド (DX Copilot スタンドアロンデモ用)
+// window.fetch をラップし '/api/' へのリクエストだけ横取りして、
+// 本物のバックエンド(demoモード)と同一のレスポンスを返す。
+// src/demo-data.js / src/store.js(シード) / src/pipeline.js(実行・メトリクス) /
+// src/router.js(ルーティング・バリデーション) をブラウザ向けに移植したもの。
+(function () {
+  'use strict';
+
+  var VERSION = '1.0.0';
+
+  /* ------------------------- 共通ユーティリティ ------------------------- */
+
+  function truncate(text, max) {
+    var s = String(text == null ? '' : text);
+    return s.length > max ? s.slice(0, max) + '…' : s;
+  }
+
+  function daysFromNow(n) {
+    var d = new Date();
+    d.setDate(d.getDate() + n);
+    return d.toISOString().slice(0, 10);
+  }
+
+  function daysAgoIso(daysAgo, hour, minute) {
+    if (hour === undefined) hour = 9;
+    if (minute === undefined) minute = 0;
+    var d = new Date();
+    d.setDate(d.getDate() - daysAgo);
+    d.setHours(hour, minute, 0, 0);
+    return d.toISOString();
+  }
+
+  function typeLabel(type) {
+    switch (type) {
+      case 'email': return 'メール';
+      case 'report': return '報告書';
+      default: return '議事録';
+    }
+  }
+
+  function randomUUID() {
+    if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+      return crypto.randomUUID();
+    }
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+      var r = (Math.random() * 16) | 0;
+      var v = c === 'x' ? r : (r & 0x3) | 0x8;
+      return v.toString(16);
+    });
+  }
+
+  function genId(prefix) {
+    return prefix + '-' + randomUUID();
+  }
+
+  function httpError(statusCode, message) {
+    var err = new Error(message);
+    err.statusCode = statusCode;
+    return err;
+  }
+
+  function isNonEmptyString(v) {
+    return typeof v === 'string' && v.trim().length > 0;
+  }
+
+  function aiDelay() {
+    var ms = 400 + Math.floor(Math.random() * 500); // 400〜900ms の擬似遅延
+    return new Promise(function (resolve) { setTimeout(resolve, ms); });
+  }
+
+  /* ------------------------- demo-data (移植) ------------------------- */
+
+  var KEYWORD_SCENARIOS = [
+    {
+      id: 'estimate',
+      keywords: ['見積'],
+      summary: '取引先向けの見積内容について協議し、提示金額と提出スケジュールを確認しました。値引き条件についても方針を合意しています。',
+      decisions: [
+        '先方への見積提示額を確定し、今週中に正式書面を送付する',
+        '値引き幅は上限10%までとし、それ以上は上長承認を必須とする'
+      ],
+      tasks: function () {
+        return [
+          { title: '見積書の最終数値を確認する', assignee: '営業担当', due: daysFromNow(2), priority: 'high' },
+          { title: '見積書をテンプレートに整形して送付する', assignee: '営業事務', due: daysFromNow(3), priority: 'medium' }
+        ];
+      },
+      risks: ['価格交渉が長引くと納期・受注時期に影響する可能性がある'],
+      sentiment: 'neutral',
+      chatReply: '見積のご質問ですね。提示額の上限や値引き条件は営業担当と上長の承認フローに沿って進めるのが安全です。見積書のテンプレートを使うと作成時間を短縮できます。'
+    },
+    {
+      id: 'invoice',
+      keywords: ['請求'],
+      summary: '請求書の発行状況と入金確認について共有しました。一部取引先で支払遅延が発生しており、督促対応の方針を決定しています。',
+      decisions: [
+        '支払期日を2週間超過した取引先には自動リマインドメールを送付する',
+        '請求書の発行タイミングを月末締め翌営業日発行に統一する'
+      ],
+      tasks: function () {
+        return [
+          { title: '未入金の取引先リストを更新する', assignee: '経理担当', due: daysFromNow(1), priority: 'high' },
+          { title: '督促メールの文面テンプレートを整備する', assignee: '経理担当', due: daysFromNow(4), priority: 'medium' }
+        ];
+      },
+      risks: ['支払遅延が続くとキャッシュフローに影響する可能性がある'],
+      sentiment: 'neutral',
+      chatReply: '請求関連ですね。支払期日を過ぎた取引先には自動リマインドを送る運用にすると、督促対応の工数を減らせます。請求書発行日は締め日基準で統一するのがおすすめです。'
+    },
+    {
+      id: 'incident',
+      keywords: ['障害'],
+      summary: 'システム障害の発生経緯と一次対応の内容を確認しました。復旧対応は完了しましたが、再発防止策の検討が必要です。',
+      decisions: [
+        '障害発生時のエスカレーション先を明文化し、対応手順書に追記する',
+        '同種障害の再発防止のため、監視アラートのしきい値を見直す'
+      ],
+      tasks: function () {
+        return [
+          { title: '障害対応手順書を更新する', assignee: '情報システム担当', due: daysFromNow(3), priority: 'high' },
+          { title: '監視アラートのしきい値を再設定する', assignee: '情報システム担当', due: daysFromNow(5), priority: 'medium' }
+        ];
+      },
+      risks: ['再発防止策が遅れると同様の障害が再発し顧客影響が拡大するリスクがある'],
+      sentiment: 'negative',
+      chatReply: '障害対応についてですね。エスカレーション先を手順書に明記し、監視アラートのしきい値を見直すことで、一次対応にかかる時間を短縮できます。'
+    },
+    {
+      id: 'hiring',
+      keywords: ['採用'],
+      summary: '採用選考の進捗を確認しました。応募者数は順調に増えていますが、書類選考にかかる工数が課題として挙がっています。',
+      decisions: [
+        '書類選考の一次基準をチェックリスト化し、判断のばらつきを減らす',
+        '選考結果の連絡は応募から5営業日以内に行うことを徹底する'
+      ],
+      tasks: function () {
+        return [
+          { title: '書類選考チェックリストを作成する', assignee: '人事担当', due: daysFromNow(2), priority: 'medium' },
+          { title: '応募者への一次連絡テンプレートを整備する', assignee: '人事担当', due: daysFromNow(3), priority: 'low' }
+        ];
+      },
+      risks: ['選考連絡の遅延が続くと候補者の離脱率が上昇するリスクがある'],
+      sentiment: 'positive',
+      chatReply: '採用選考についてですね。書類選考の基準をチェックリスト化すると、担当者ごとの判断のばらつきが減り、選考スピードも上がります。'
+    },
+    {
+      id: 'meeting',
+      keywords: ['会議', '定例'],
+      summary: '週次定例会議を実施し、各部署の進捗共有と今後のアクションについて確認しました。',
+      decisions: ['次回定例までに各部署の進捗レポートを共有フォルダに集約する'],
+      tasks: function () {
+        return [
+          { title: '議事録を関係者へ共有する', assignee: '会議運営担当', due: daysFromNow(1), priority: 'medium' },
+          { title: '次回定例までのアクション状況をフォローアップする', assignee: '会議運営担当', due: daysFromNow(6), priority: 'low' }
+        ];
+      },
+      risks: ['アクションアイテムのフォローが漏れると進捗確認が遅れるリスクがある'],
+      sentiment: 'neutral',
+      chatReply: '定例会議についてですね。議事録を早めに共有し、アクションアイテムの担当と期限を明確にしておくとフォローアップがスムーズです。'
+    }
+  ];
+
+  var DEFAULT_SCENARIO = {
+    id: 'general',
+    summary: '共有された内容の要点を整理し、決定事項とネクストアクションを抽出しました。',
+    decisions: ['次回までに関係者間で認識を合わせ、進捗を共有する'],
+    tasks: function () {
+      return [
+        { title: '内容を関係者に共有する', assignee: '担当者', due: daysFromNow(2), priority: 'medium' },
+        { title: 'ネクストアクションの進捗を確認する', assignee: '担当者', due: daysFromNow(5), priority: 'low' }
+      ];
+    },
+    risks: ['対応が遅れるとネクストアクションの実行が遅延するリスクがある'],
+    sentiment: 'neutral',
+    chatReply: 'ご質問ありがとうございます。内容を整理し、決定事項とタスクの担当・期限を明確にすることで、次のアクションに移りやすくなります。'
+  };
+
+  function findScenario(text) {
+    var s = String(text == null ? '' : text);
+    for (var i = 0; i < KEYWORD_SCENARIOS.length; i++) {
+      var scenario = KEYWORD_SCENARIOS[i];
+      for (var j = 0; j < scenario.keywords.length; j++) {
+        if (s.indexOf(scenario.keywords[j]) !== -1) return scenario;
+      }
+    }
+    return DEFAULT_SCENARIO;
+  }
+
+  function analyzeDemo(text, type) {
+    var scenario = findScenario(text);
+    var label = typeLabel(type || 'minutes');
+    return {
+      summary: '【' + label + '分析】' + scenario.summary,
+      decisions: scenario.decisions,
+      tasks: scenario.tasks(),
+      risks: scenario.risks,
+      sentiment: scenario.sentiment
+    };
+  }
+
+  function chatDemo(messages, context) {
+    var lastUser = null;
+    var list = messages || [];
+    for (var i = list.length - 1; i >= 0; i--) {
+      if (list[i] && list[i].role === 'user') { lastUser = list[i]; break; }
+    }
+    var question = lastUser ? String(lastUser.content == null ? '' : lastUser.content) : '';
+    var scenario = findScenario(question);
+    var reply = scenario.chatReply;
+    if (context && typeof context === 'object' && context.summary) {
+      reply += ' なお、直前の分析結果「' + truncate(context.summary, 50) + '」も踏まえてお答えしました。';
+    }
+    return reply;
+  }
+
+  var SAMPLE_LOGS = [
+    '2026-07-04 09:12 営業部: 新規問い合わせが3件着信。内容はすべて価格に関する見積依頼で、返信下書きの作成に毎回15分ほど要している。',
+    '2026-07-04 10:30 経理部: A社への請求書発行が期日を2日超過。督促の電話・メール対応に合計30分。',
+    '2026-07-05 14:00 情報システム部: 社内システムに軽微な障害が発生。一次対応に45分、エスカレーション先が不明確で対応が遅延した。',
+    '2026-07-06 11:20 人事部: 採用応募が15件届く。書類選考に1件あたり10分、計150分を書類確認だけに費やした。',
+    '2026-07-07 16:00 全社: 週次定例会議を実施。議事録作成とタスク整理に40分。',
+    '2026-07-08 09:00 営業部: 問い合わせ対応の一次回答の下書きに毎回15分要しており、担当者によって回答品質にばらつきがある。',
+    '2026-07-09 13:45 経理部: 月次請求書の送付リマインドをExcelで手動管理しており、抜け漏れが発生しがち。',
+    '2026-07-10 10:00 情報システム部: 同種の軽微な障害が再発。同じ手順書を毎回参照して復旧に30分かかっている。'
+  ].join('\n');
+
+  var DISCOVERY_TEMPLATES = [
+    {
+      keyword: '問い合わせ',
+      id: 'auto-inquiry-triage',
+      title: '問い合わせ対応の自動仕分け強化',
+      description: '過去の問い合わせログから頻出パターンを検知し、内容の分類と一次回答案の作成を自動化して対応品質を平準化します。',
+      estimatedSavingMinutesPerWeek: 180,
+      confidence: 0.86,
+      pipelineTemplate: {
+        name: '問い合わせ自動仕分け(強化版)',
+        trigger: '問い合わせフォーム送信・メール受信',
+        steps: [
+          { name: '問い合わせ内容を分類', type: 'ai_classify' },
+          { name: '一次回答を下書き', type: 'ai_draft' },
+          { name: '担当者にアサイン', type: 'assign' }
+        ]
+      }
+    },
+    {
+      keyword: '見積',
+      id: 'auto-estimate-draft',
+      title: '見積書ドラフト自動作成',
+      description: '過去の見積実績と条件をもとに、見積書のドラフトを自動生成し確認だけで送付できる状態にします。',
+      estimatedSavingMinutesPerWeek: 90,
+      confidence: 0.74,
+      pipelineTemplate: {
+        name: '見積書自動ドラフト作成',
+        trigger: '見積依頼の受信',
+        steps: [
+          { name: '見積条件を要約', type: 'ai_summarize' },
+          { name: '見積書ドラフトを作成', type: 'ai_draft' },
+          { name: '担当者に確認依頼', type: 'notify' }
+        ]
+      }
+    },
+    {
+      keyword: '請求',
+      id: 'auto-invoice-reminder',
+      title: '請求書送付・督促の自動リマインド',
+      description: '支払期日を超過した取引先を自動検知し、督促メールの下書き作成と通知を自動化してキャッシュフローの遅延リスクを低減します。',
+      estimatedSavingMinutesPerWeek: 60,
+      confidence: 0.79,
+      pipelineTemplate: {
+        name: '請求書督促自動リマインド',
+        trigger: '支払期日超過の検知',
+        steps: [
+          { name: '未入金状況を要約', type: 'ai_summarize' },
+          { name: '督促メールを下書き', type: 'ai_draft' },
+          { name: '経理担当へ通知', type: 'notify' }
+        ]
+      }
+    },
+    {
+      keyword: '障害',
+      id: 'auto-incident-escalation',
+      title: '障害一次対応の自動エスカレーション',
+      description: '障害発生時に過去事例から類似障害を照合し、一次対応手順の提示とエスカレーション先への通知を自動化します。',
+      estimatedSavingMinutesPerWeek: 120,
+      confidence: 0.81,
+      pipelineTemplate: {
+        name: '障害一次対応自動エスカレーション',
+        trigger: '監視アラート発報',
+        steps: [
+          { name: '障害内容を分類', type: 'ai_classify' },
+          { name: '一次対応手順を要約', type: 'ai_summarize' },
+          { name: 'エスカレーション先へ通知', type: 'notify' }
+        ]
+      }
+    },
+    {
+      keyword: '採用',
+      id: 'auto-candidate-screening',
+      title: '応募者一次スクリーニング自動化',
+      description: '応募書類の内容をAIが一次スクリーニングし、選考基準に沿った評価コメントを自動生成します。',
+      estimatedSavingMinutesPerWeek: 150,
+      confidence: 0.7,
+      pipelineTemplate: {
+        name: '応募者一次スクリーニング自動化',
+        trigger: '応募フォーム送信',
+        steps: [
+          { name: '応募内容を要約', type: 'ai_summarize' },
+          { name: '選考基準で分類', type: 'ai_classify' },
+          { name: '人事担当へ通知', type: 'notify' }
+        ]
+      }
+    },
+    {
+      keyword: '会議',
+      id: 'auto-meeting-digest',
+      title: '定例会議の議事録自動配布',
+      description: '会議の録音・メモから議事録を自動生成し、決定事項とタスクを抽出して関係者に自動配布します。',
+      estimatedSavingMinutesPerWeek: 40,
+      confidence: 0.68,
+      pipelineTemplate: {
+        name: '議事録自動生成・配布',
+        trigger: '会議終了',
+        steps: [
+          { name: '会議内容を要約', type: 'ai_summarize' },
+          { name: '議事録ドラフトを作成', type: 'ai_draft' },
+          { name: '関係者へ通知', type: 'notify' },
+          { name: '議事録をアーカイブ', type: 'archive' }
+        ]
+      }
+    }
+  ];
+
+  function discoverDemo(logs) {
+    var text = logs && String(logs).trim() ? String(logs) : SAMPLE_LOGS;
+    var matched = DISCOVERY_TEMPLATES.filter(function (t) { return text.indexOf(t.keyword) !== -1; });
+    var chosen = matched.length ? matched : DISCOVERY_TEMPLATES.slice(0, 3);
+    return chosen.map(function (t) {
+      return {
+        id: t.id,
+        title: t.title,
+        description: t.description,
+        estimatedSavingMinutesPerWeek: t.estimatedSavingMinutesPerWeek,
+        confidence: t.confidence,
+        pipelineTemplate: t.pipelineTemplate
+      };
+    });
+  }
+
+  function classifyText(text) {
+    if (text.indexOf('見積') !== -1) return '見積依頼';
+    if (text.indexOf('請求') !== -1) return '請求関連';
+    if (text.indexOf('障害') !== -1) return '障害・不具合';
+    if (text.indexOf('採用') !== -1) return '採用関連';
+    if (text.indexOf('問い合わせ') !== -1 || text.indexOf('質問') !== -1) return '問い合わせ';
+    return '一般';
+  }
+
+  function runStepDemo(stepType, stepName, input) {
+    var snippet = truncate(input, 60);
+    switch (stepType) {
+      case 'ai_summarize':
+        return '【要約】' + stepName + ': ' + (snippet || '入力内容') + 'の要点を整理し、主要な論点とネクストアクションを抽出しました。';
+      case 'ai_classify':
+        return '【分類】' + stepName + ': 入力内容を「' + classifyText(snippet) + '」に分類しました。';
+      case 'ai_draft':
+        return '【下書き】' + stepName + ': 「' + (snippet || 'ご連絡') + '」への返信・報告ドラフトを作成しました。ご確認のうえご利用ください。';
+      default:
+        return stepName + 'を実行しました。';
+    }
+  }
+
+  /* ------------------------- store シード (移植) ------------------------- */
+
+  function minutesForSteps(steps) {
+    return steps.reduce(function (sum, s) { return sum + (s.type.indexOf('ai_') === 0 ? 8 : 3); }, 0);
+  }
+
+  function buildStepResult(step, shouldFail) {
+    if (shouldFail) {
+      return { name: step.name, status: 'failed', output: 'エラー: ' + step.name + 'の処理中に一時的な障害が発生しました。' };
+    }
+    return { name: step.name, status: 'success', output: step.name + 'を完了しました。' };
+  }
+
+  function buildRun(id, pipeline, opts) {
+    var fail = !!opts.fail;
+    var failIndex = fail ? pipeline.steps.length - 1 : -1;
+    var steps = pipeline.steps.map(function (s, idx) { return buildStepResult(s, idx === failIndex); });
+    var status = steps.some(function (s) { return s.status === 'failed'; }) ? 'failed' : 'success';
+    var completedSteps = status === 'success' ? pipeline.steps : pipeline.steps.slice(0, failIndex);
+    return {
+      id: id,
+      pipelineId: pipeline.id,
+      startedAt: daysAgoIso(opts.daysAgo, opts.hour, opts.minute),
+      durationMs: 900 + ((opts.hour * 60 + opts.minute) % 7) * 250,
+      savedMinutes: minutesForSteps(completedSteps),
+      status: status,
+      steps: steps
+    };
+  }
+
+  function seedState() {
+    var pipeline1 = {
+      id: 'pl-inquiry-triage',
+      name: '問い合わせメール自動仕分け&返信下書き',
+      description: '受信した問い合わせメールを分類し、一次回答の下書きを自動作成して担当者に割り当てます。',
+      trigger: '問い合わせメール受信',
+      steps: [
+        { name: '問い合わせ内容を分類', type: 'ai_classify', config: {} },
+        { name: '一次回答を下書き', type: 'ai_draft', config: {} },
+        { name: '担当者にアサイン', type: 'assign', config: {} },
+        { name: '完了を通知', type: 'notify', config: {} }
+      ],
+      createdAt: daysAgoIso(30)
+    };
+
+    var pipeline2 = {
+      id: 'pl-weekly-report',
+      name: '週次報告書の自動生成',
+      description: '今週の活動ログを要約し、報告書のドラフトを自動生成して関係者に共有します。',
+      trigger: '毎週金曜 17:00',
+      steps: [
+        { name: '活動ログを要約', type: 'ai_summarize', config: {} },
+        { name: '報告書ドラフトを作成', type: 'ai_draft', config: {} },
+        { name: '関係者へ通知', type: 'notify', config: {} },
+        { name: 'アーカイブに保存', type: 'archive', config: {} }
+      ],
+      createdAt: daysAgoIso(30)
+    };
+
+    var schedule = [
+      { daysAgo: 6, hour: 9, minute: 10, pipeline: pipeline1 },
+      { daysAgo: 6, hour: 15, minute: 40, pipeline: pipeline2 },
+      { daysAgo: 5, hour: 9, minute: 5, pipeline: pipeline1 },
+      { daysAgo: 5, hour: 11, minute: 20, pipeline: pipeline1 },
+      { daysAgo: 4, hour: 10, minute: 0, pipeline: pipeline2 },
+      { daysAgo: 4, hour: 16, minute: 30, pipeline: pipeline1 },
+      { daysAgo: 3, hour: 9, minute: 45, pipeline: pipeline1 },
+      { daysAgo: 3, hour: 14, minute: 15, pipeline: pipeline2, fail: true },
+      { daysAgo: 2, hour: 9, minute: 30, pipeline: pipeline1 },
+      { daysAgo: 2, hour: 13, minute: 0, pipeline: pipeline1 },
+      { daysAgo: 1, hour: 10, minute: 10, pipeline: pipeline2 },
+      { daysAgo: 0, hour: 9, minute: 0, pipeline: pipeline1 }
+    ];
+
+    var runs = schedule.map(function (s, idx) { return buildRun('run-seed-' + (idx + 1), s.pipeline, s); });
+
+    return { pipelines: [pipeline1, pipeline2], runs: runs, suggestions: [] };
+  }
+
+  var state = seedState(); // ブラウザ内メモリ上のストア
+
+  /* ------------------------- pipeline エンジン (移植) ------------------------- */
+
+  var AI_STEP_MINUTES = 8;
+  var OTHER_STEP_MINUTES = 3;
+  var YEN_PER_MINUTE = 50;
+
+  function createPipeline(input) {
+    if (!input || typeof input !== 'object') {
+      throw httpError(400, 'リクエストボディが不正です');
+    }
+    var name = input.name;
+    var description = input.description === undefined ? '' : input.description;
+    var trigger = input.trigger;
+    var steps = input.steps;
+
+    if (!isNonEmptyString(name)) throw httpError(400, 'name is required');
+    if (!isNonEmptyString(trigger)) throw httpError(400, 'trigger is required');
+    if (!Array.isArray(steps) || steps.length === 0) throw httpError(400, 'steps must be a non-empty array');
+    for (var i = 0; i < steps.length; i++) {
+      var step = steps[i];
+      if (!step || !isNonEmptyString(step.name) || !isNonEmptyString(step.type)) {
+        throw httpError(400, 'each step requires a name and a type');
+      }
+    }
+
+    var pipeline = {
+      id: genId('pl'),
+      name: name,
+      description: typeof description === 'string' ? description : '',
+      trigger: trigger,
+      steps: steps.map(function (s) { return { name: s.name, type: s.type, config: s.config == null ? {} : s.config }; }),
+      createdAt: new Date().toISOString()
+    };
+
+    state.pipelines.push(pipeline);
+    return pipeline;
+  }
+
+  function executeStep(step, input) {
+    switch (step.type) {
+      case 'ai_summarize':
+      case 'ai_classify':
+      case 'ai_draft':
+        return runStepDemo(step.type, step.name, input);
+      case 'notify':
+        return '通知を送信しました: 「' + step.name + '」の完了を関係者に共有しました。';
+      case 'assign':
+        return '担当者にアサインしました: ' + step.name + ' を次の担当者へ割り当てました。';
+      case 'archive':
+        return 'アーカイブに保存しました: ' + step.name + ' の結果を保存しました。';
+      default:
+        return step.name + ' を実行しました。';
+    }
+  }
+
+  async function runPipelineMock(pipelineId, input) {
+    var pipeline = state.pipelines.find(function (p) { return p.id === pipelineId; });
+    if (!pipeline) throw httpError(404, 'pipeline not found');
+
+    var startedAt = new Date().toISOString();
+    var startedAtMs = Date.now();
+
+    await aiDelay(); // AI応答の待ち時間演出
+
+    var stepResults = [];
+    var status = 'success';
+    var savedMinutes = 0;
+    var carry = typeof input === 'string' ? input : input == null ? '' : JSON.stringify(input);
+
+    for (var i = 0; i < pipeline.steps.length; i++) {
+      var step = pipeline.steps[i];
+      try {
+        var output = executeStep(step, carry);
+        stepResults.push({ name: step.name, status: 'success', output: output });
+        carry = output;
+        savedMinutes += step.type.indexOf('ai_') === 0 ? AI_STEP_MINUTES : OTHER_STEP_MINUTES;
+      } catch (err) {
+        stepResults.push({ name: step.name, status: 'failed', output: 'エラー: ' + err.message });
+        status = 'failed';
+        break;
+      }
+    }
+
+    var run = {
+      id: genId('run'),
+      pipelineId: pipelineId,
+      startedAt: startedAt,
+      durationMs: Date.now() - startedAtMs,
+      savedMinutes: savedMinutes,
+      status: status,
+      steps: stepResults
+    };
+
+    state.runs.push(run);
+    return run;
+  }
+
+  function startOfDay(date) {
+    var d = new Date(date);
+    d.setHours(0, 0, 0, 0);
+    return d.getTime();
+  }
+
+  function computeWeeklyTrend(runs) {
+    var today = startOfDay(new Date());
+    var dayMs = 24 * 60 * 60 * 1000;
+    var trend = [0, 0, 0, 0, 0, 0, 0];
+    for (var i = 0; i < runs.length; i++) {
+      var runDay = startOfDay(runs[i].startedAt);
+      var diffDays = Math.round((today - runDay) / dayMs);
+      if (diffDays >= 0 && diffDays < 7) {
+        trend[6 - diffDays] += 1;
+      }
+    }
+    return trend;
+  }
+
+  function getMetrics() {
+    var runs = state.runs;
+    var pipelines = state.pipelines;
+
+    var totalRuns = runs.length;
+    var successCount = runs.filter(function (r) { return r.status === 'success'; }).length;
+    var successRate = totalRuns ? successCount / totalRuns : 0;
+    var savedMinutes = runs.reduce(function (sum, r) { return sum + (r.savedMinutes || 0); }, 0);
+    var savedCostYen = savedMinutes * YEN_PER_MINUTE;
+
+    var allSteps = [];
+    pipelines.forEach(function (p) { allSteps = allSteps.concat(p.steps || []); });
+    var aiSteps = allSteps.filter(function (s) { return s.type && s.type.indexOf('ai_') === 0; });
+    var automationRate = allSteps.length ? aiSteps.length / allSteps.length : 0;
+
+    return {
+      totalRuns: totalRuns,
+      successRate: successRate,
+      savedMinutes: savedMinutes,
+      savedCostYen: savedCostYen,
+      automationRate: automationRate,
+      weeklyTrend: computeWeeklyTrend(runs)
+    };
+  }
+
+  /* ------------------------- APIルーティング (router.js 相当) ------------------------- */
+
+  function jsonResponse(statusCode, body) {
+    return new Response(JSON.stringify(body), {
+      status: statusCode,
+      headers: { 'content-type': 'application/json; charset=utf-8' }
+    });
+  }
+
+  function parseBody(rawBody) {
+    if (rawBody == null || rawBody === '') return {};
+    if (typeof rawBody === 'object' && !(rawBody instanceof ArrayBuffer)) {
+      // すでにオブジェクトの場合(通常は文字列のはず)
+      try { return JSON.parse(JSON.stringify(rawBody)); } catch (e) { return {}; }
+    }
+    try {
+      return JSON.parse(String(rawBody));
+    } catch (e) {
+      throw httpError(400, 'invalid JSON body');
+    }
+  }
+
+  async function handleApi(pathname, method, rawBody) {
+    try {
+      if (pathname === '/api/health' && method === 'GET') {
+        return jsonResponse(200, { status: 'ok', mode: 'demo', version: VERSION });
+      }
+
+      if (pathname === '/api/analyze' && method === 'POST') {
+        var body = parseBody(rawBody);
+        if (!body || typeof body.text !== 'string' || !body.text.trim()) {
+          return jsonResponse(400, { error: 'text is required' });
+        }
+        var type = ['minutes', 'email', 'report'].indexOf(body.type) !== -1 ? body.type : 'minutes';
+        await aiDelay();
+        return jsonResponse(200, analyzeDemo(body.text, type));
+      }
+
+      if (pathname === '/api/chat' && method === 'POST') {
+        var chatBody = parseBody(rawBody);
+        if (!chatBody || !Array.isArray(chatBody.messages) || chatBody.messages.length === 0) {
+          return jsonResponse(400, { error: 'messages is required' });
+        }
+        var valid = chatBody.messages.every(function (m) {
+          return m && (m.role === 'user' || m.role === 'assistant') && typeof m.content === 'string';
+        });
+        if (!valid) {
+          return jsonResponse(400, { error: 'each message requires role ("user"|"assistant") and content' });
+        }
+        await aiDelay();
+        return jsonResponse(200, { reply: chatDemo(chatBody.messages, chatBody.context) });
+      }
+
+      if (pathname === '/api/pipelines' && method === 'GET') {
+        return jsonResponse(200, { pipelines: state.pipelines });
+      }
+
+      if (pathname === '/api/pipelines' && method === 'POST') {
+        var createBody = parseBody(rawBody);
+        return jsonResponse(201, { pipeline: createPipeline(createBody) });
+      }
+
+      var runMatch = pathname.match(/^\/api\/pipelines\/([^/]+)\/run$/);
+      if (runMatch && method === 'POST') {
+        var runBody = parseBody(rawBody);
+        var run = await runPipelineMock(decodeURIComponent(runMatch[1]), runBody.input);
+        return jsonResponse(200, { run: run });
+      }
+
+      if (pathname === '/api/runs' && method === 'GET') {
+        var sorted = state.runs.slice().sort(function (a, b) {
+          return new Date(b.startedAt).getTime() - new Date(a.startedAt).getTime();
+        });
+        return jsonResponse(200, { runs: sorted });
+      }
+
+      if (pathname === '/api/metrics' && method === 'GET') {
+        return jsonResponse(200, getMetrics());
+      }
+
+      if (pathname === '/api/discover' && method === 'POST') {
+        var discoverBody = parseBody(rawBody);
+        var logs = typeof discoverBody.logs === 'string' && discoverBody.logs.trim() ? discoverBody.logs : SAMPLE_LOGS;
+        await aiDelay();
+        var suggestions = discoverDemo(logs);
+        state.suggestions = suggestions;
+        return jsonResponse(200, { suggestions: suggestions });
+      }
+
+      var adoptMatch = pathname.match(/^\/api\/discover\/([^/]+)\/adopt$/);
+      if (adoptMatch && method === 'POST') {
+        var suggestionId = decodeURIComponent(adoptMatch[1]);
+        var suggestion = state.suggestions.find(function (s) { return s.id === suggestionId; });
+        if (!suggestion) {
+          return jsonResponse(404, { error: 'suggestion not found' });
+        }
+        var created = createPipeline({
+          name: suggestion.pipelineTemplate.name,
+          description: suggestion.description,
+          trigger: suggestion.pipelineTemplate.trigger,
+          steps: suggestion.pipelineTemplate.steps
+        });
+        return jsonResponse(201, { pipeline: created });
+      }
+
+      return jsonResponse(404, { error: 'not found' });
+    } catch (err) {
+      var statusCode = err.statusCode || err.status || 500;
+      return jsonResponse(statusCode, { error: err.message || 'internal server error' });
+    }
+  }
+
+  /* ------------------------- fetch ラップ ------------------------- */
+
+  var originalFetch = window.fetch ? window.fetch.bind(window) : null;
+
+  function resolvePathname(url) {
+    var s = String(url);
+    // 相対パス '/api/...' の直接判定(file:// でも動くように)
+    if (s.indexOf('/api/') === 0) return s.split('?')[0].split('#')[0];
+    try {
+      var base = (typeof location !== 'undefined' && location.href) ? location.href : 'http://localhost/';
+      return new URL(s, base).pathname;
+    } catch (e) {
+      return s;
+    }
+  }
+
+  window.fetch = function (input, init) {
+    var url, method, bodyPromise;
+
+    if (typeof Request !== 'undefined' && input instanceof Request) {
+      url = input.url;
+      method = (init && init.method) || input.method || 'GET';
+      if (init && init.body != null) {
+        bodyPromise = Promise.resolve(init.body);
+      } else {
+        try {
+          bodyPromise = input.clone().text();
+        } catch (e) {
+          bodyPromise = Promise.resolve('');
+        }
+      }
+    } else {
+      url = String(input);
+      method = (init && init.method) || 'GET';
+      bodyPromise = Promise.resolve(init && init.body != null ? init.body : '');
+    }
+
+    var pathname = resolvePathname(url);
+    if (pathname.indexOf('/api/') !== 0) {
+      if (!originalFetch) {
+        return Promise.reject(new TypeError('fetch is not available'));
+      }
+      return originalFetch(input, init);
+    }
+
+    return bodyPromise.then(function (rawBody) {
+      return handleApi(pathname, String(method).toUpperCase(), rawBody);
+    });
+  };
+})();
+
+'use strict';
+
+/* ==========================================================================
+   DX Copilot — フロントエンド SPA
+   API契約は DESIGN.md を唯一の真実とする。全てのAPI応答文字列は
+   textContent / escapeHtml を経由して挿入し、生データを innerHTML に
+   渡さないこと(XSS対策)。
+   ========================================================================== */
+
+(function () {
+  'use strict';
+
+  /* ---------------------------- Utilities ---------------------------- */
+
+  function qs(sel, root) { return (root || document).querySelector(sel); }
+  function qsa(sel, root) { return Array.prototype.slice.call((root || document).querySelectorAll(sel)); }
+
+  function escapeHtml(str) {
+    if (str === null || str === undefined) return '';
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  function el(tag, className, text) {
+    const node = document.createElement(tag);
+    if (className) node.className = className;
+    if (text !== undefined && text !== null) node.textContent = text;
+    return node;
+  }
+
+  function formatNumber(n) {
+    return Math.round(n).toLocaleString('ja-JP');
+  }
+
+  function formatDateTime(iso) {
+    try {
+      const d = new Date(iso);
+      if (isNaN(d.getTime())) return String(iso);
+      return d.toLocaleString('ja-JP', {
+        month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit'
+      });
+    } catch (e) {
+      return String(iso);
+    }
+  }
+
+  function formatDuration(ms) {
+    if (typeof ms !== 'number' || isNaN(ms)) return '-';
+    if (ms < 1000) return ms + 'ms';
+    return (ms / 1000).toFixed(1) + '秒';
+  }
+
+  /* ---------------------------- Toast ---------------------------- */
+
+  function toast(message, type) {
+    const container = qs('#toastContainer');
+    if (!container) return;
+    const node = el('div', 'toast toast-' + (type || 'info'));
+    node.textContent = message;
+    container.appendChild(node);
+    setTimeout(function () {
+      node.classList.add('toast-out');
+      setTimeout(function () { node.remove(); }, 220);
+    }, 4200);
+  }
+
+  /* ---------------------------- API helper ---------------------------- */
+
+  async function api(path, options) {
+    options = options || {};
+    let res;
+    try {
+      res = await fetch(path, Object.assign({
+        headers: { 'Content-Type': 'application/json' }
+      }, options));
+    } catch (err) {
+      toast('サーバーに接続できませんでした。バックエンドが起動しているか確認してください。', 'error');
+      throw err;
+    }
+
+    let data = null;
+    try {
+      data = await res.json();
+    } catch (e) {
+      data = null;
+    }
+
+    if (!res.ok) {
+      const msg = (data && data.error) ? data.error : ('リクエストに失敗しました (' + res.status + ')');
+      toast(msg, 'error');
+      throw new Error(msg);
+    }
+    return data;
+  }
+
+  function post(path, body) {
+    return api(path, { method: 'POST', body: JSON.stringify(body || {}) });
+  }
+  function get(path) {
+    return api(path, { method: 'GET' });
+  }
+
+  /* ---------------------------- Count-up animation ---------------------------- */
+
+  function animateNumber(node, target, opts) {
+    opts = opts || {};
+    const duration = opts.duration || 900;
+    const decimals = opts.decimals || 0;
+    const startTime = performance.now();
+    const startVal = 0;
+    if (!isFinite(target)) target = 0;
+
+    function tick(now) {
+      const p = Math.min((now - startTime) / duration, 1);
+      const eased = 1 - Math.pow(1 - p, 3);
+      const val = startVal + (target - startVal) * eased;
+      node.textContent = decimals > 0 ? val.toFixed(decimals) : formatNumber(val);
+      if (p < 1) {
+        requestAnimationFrame(tick);
+      } else {
+        node.textContent = decimals > 0 ? target.toFixed(decimals) : formatNumber(target);
+      }
+    }
+    requestAnimationFrame(tick);
+  }
+
+  /* ---------------------------- Router ---------------------------- */
+
+  const ROUTES = ['dashboard', 'analyze', 'pipelines', 'discover'];
+  const TITLES = {
+    dashboard: 'ダッシュボード',
+    analyze: 'AI分析',
+    pipelines: '自動化パイプライン',
+    discover: 'AI自動化発見'
+  };
+
+  const loadedOnce = {};
+
+  function router() {
+    let hash = (location.hash || '').replace('#', '');
+    if (ROUTES.indexOf(hash) === -1) hash = 'dashboard';
+
+    ROUTES.forEach(function (r) {
+      const view = qs('#view-' + r);
+      const navItem = qs('.nav-item[data-route="' + r + '"]');
+      if (view) view.classList.toggle('active', r === hash);
+      if (navItem) navItem.classList.toggle('active', r === hash);
+    });
+
+    qs('#viewTitle').textContent = TITLES[hash];
+
+    if (hash === 'dashboard') loadDashboard();
+    if (hash === 'pipelines') loadPipelines();
+  }
+
+  window.addEventListener('hashchange', router);
+
+  /* ---------------------------- Health / mode badge ---------------------------- */
+
+  async function loadHealth() {
+    const badge = qs('#modeBadge');
+    const text = qs('#modeBadgeText');
+    try {
+      const data = await get('/api/health');
+      const mode = data && data.mode;
+      badge.classList.remove('mode-badge-pending');
+      if (mode === 'live') {
+        badge.classList.add('mode-badge-live');
+        badge.classList.remove('mode-badge-demo');
+        text.textContent = 'Claude API接続中';
+      } else {
+        badge.classList.add('mode-badge-demo');
+        badge.classList.remove('mode-badge-live');
+        text.textContent = 'デモモード';
+      }
+    } catch (e) {
+      badge.classList.remove('mode-badge-pending', 'mode-badge-live');
+      badge.classList.add('mode-badge-demo');
+      text.textContent = 'デモモード（オフライン）';
+    }
+  }
+
+  /* ---------------------------- Dashboard ---------------------------- */
+
+  function renderWeeklyChart(container, trend) {
+    container.innerHTML = '';
+    const values = Array.isArray(trend) && trend.length ? trend : [0, 0, 0, 0, 0, 0, 0];
+    const days = ['月', '火', '水', '木', '金', '土', '日'];
+    const max = Math.max.apply(null, values.concat([1]));
+
+    const width = 520;
+    const height = 180;
+    const padding = 24;
+    const barGap = 14;
+    const n = values.length;
+    const barWidth = (width - padding * 2 - barGap * (n - 1)) / n;
+
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('viewBox', '0 0 ' + width + ' ' + (height + 24));
+    svg.setAttribute('class', 'bar-chart-svg');
+    svg.setAttribute('preserveAspectRatio', 'xMidYMax meet');
+
+    values.forEach(function (v, i) {
+      const barH = max > 0 ? (v / max) * (height - 30) : 0;
+      const x = padding + i * (barWidth + barGap);
+      const y = height - barH;
+
+      const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+      rect.setAttribute('x', x.toFixed(1));
+      rect.setAttribute('y', height.toFixed(1));
+      rect.setAttribute('width', barWidth.toFixed(1));
+      rect.setAttribute('height', '0');
+      rect.setAttribute('rx', '4');
+      rect.setAttribute('fill', 'url(#dxBarGradient)');
+      svg.appendChild(rect);
+
+      requestAnimationFrame(function () {
+        rect.style.transition = 'y 600ms cubic-bezier(0.4,0,0.2,1) ' + (i * 45) + 'ms, height 600ms cubic-bezier(0.4,0,0.2,1) ' + (i * 45) + 'ms';
+        rect.setAttribute('y', y.toFixed(1));
+        rect.setAttribute('height', Math.max(barH, 1).toFixed(1));
+      });
+
+      const valueLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      valueLabel.setAttribute('x', (x + barWidth / 2).toFixed(1));
+      valueLabel.setAttribute('y', (y - 8).toFixed(1));
+      valueLabel.setAttribute('text-anchor', 'middle');
+      valueLabel.setAttribute('fill', '#9aa4bd');
+      valueLabel.setAttribute('font-size', '10.5');
+      valueLabel.textContent = String(v);
+      svg.appendChild(valueLabel);
+
+      const dayLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      dayLabel.setAttribute('x', (x + barWidth / 2).toFixed(1));
+      dayLabel.setAttribute('y', (height + 18).toFixed(1));
+      dayLabel.setAttribute('text-anchor', 'middle');
+      dayLabel.setAttribute('fill', '#6b7590');
+      dayLabel.setAttribute('font-size', '11');
+      dayLabel.textContent = days[i] || '';
+      svg.appendChild(dayLabel);
+    });
+
+    const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+    const gradient = document.createElementNS('http://www.w3.org/2000/svg', 'linearGradient');
+    gradient.setAttribute('id', 'dxBarGradient');
+    gradient.setAttribute('x1', '0'); gradient.setAttribute('y1', '1');
+    gradient.setAttribute('x2', '0'); gradient.setAttribute('y2', '0');
+    const stop1 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
+    stop1.setAttribute('offset', '0%'); stop1.setAttribute('stop-color', '#06b6d4');
+    const stop2 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
+    stop2.setAttribute('offset', '100%'); stop2.setAttribute('stop-color', '#22d3ee');
+    gradient.appendChild(stop1); gradient.appendChild(stop2);
+    defs.appendChild(gradient);
+    svg.insertBefore(defs, svg.firstChild);
+
+    container.appendChild(svg);
+  }
+
+  function statusBadge(status) {
+    const span = el('span', 'badge');
+    if (status === 'success') {
+      span.classList.add('badge-success');
+      span.textContent = '成功';
+    } else if (status === 'failed') {
+      span.classList.add('badge-danger');
+      span.textContent = '失敗';
+    } else {
+      span.classList.add('badge-neutral');
+      span.textContent = String(status || '-');
+    }
+    return span;
+  }
+
+  function renderRunsTable(tbody, runs, pipelineNameMap) {
+    tbody.innerHTML = '';
+    if (!runs || !runs.length) {
+      const tr = document.createElement('tr');
+      const td = el('td', 'empty-row', '実行履歴がありません');
+      td.colSpan = 5;
+      tr.appendChild(td);
+      tbody.appendChild(tr);
+      return;
+    }
+    runs.slice(0, 10).forEach(function (run) {
+      const tr = document.createElement('tr');
+
+      const nameTd = el('td', null, (pipelineNameMap && pipelineNameMap[run.pipelineId]) || run.pipelineId || '-');
+      const startedTd = el('td', null, formatDateTime(run.startedAt));
+      const durationTd = el('td', null, formatDuration(run.durationMs));
+      const savedTd = el('td', null, (typeof run.savedMinutes === 'number' ? run.savedMinutes + '分' : '-'));
+      const statusTd = document.createElement('td');
+      statusTd.appendChild(statusBadge(run.status));
+
+      tr.appendChild(nameTd);
+      tr.appendChild(startedTd);
+      tr.appendChild(durationTd);
+      tr.appendChild(savedTd);
+      tr.appendChild(statusTd);
+      tbody.appendChild(tr);
+    });
+  }
+
+  let pipelinesCache = [];
+
+  async function loadDashboard() {
+    try {
+      const [metrics, runsData, pipelinesData] = await Promise.all([
+        get('/api/metrics'),
+        get('/api/runs'),
+        get('/api/pipelines').catch(function () { return { pipelines: [] }; })
+      ]);
+
+      if (pipelinesData && pipelinesData.pipelines) pipelinesCache = pipelinesData.pipelines;
+      const nameMap = {};
+      pipelinesCache.forEach(function (p) { nameMap[p.id] = p.name; });
+
+      animateNumber(qs('#metricSavedMinutes'), metrics.savedMinutes || 0);
+      animateNumber(qs('#metricSavedCost'), metrics.savedCostYen || 0);
+      animateNumber(qs('#metricTotalRuns'), metrics.totalRuns || 0);
+      animateNumber(qs('#metricSuccessRate'), Math.round((metrics.successRate || 0) * (metrics.successRate <= 1 ? 100 : 1)));
+
+      renderWeeklyChart(qs('#weeklyChart'), metrics.weeklyTrend);
+      renderRunsTable(qs('#runsTableBody'), runsData.runs, nameMap);
+    } catch (e) {
+      // toast already shown by api()
+      renderWeeklyChart(qs('#weeklyChart'), [0, 0, 0, 0, 0, 0, 0]);
+      renderRunsTable(qs('#runsTableBody'), []);
+    }
+  }
+
+  /* ---------------------------- AI分析 ---------------------------- */
+
+  const SAMPLE_MINUTES = [
+    '2026年7月10日 定例会議議事録',
+    '出席者: 田中(営業部長)、佐藤(開発リーダー)、鈴木(カスタマーサクセス)、山本(経理)',
+    '議題: 新規顧客A社への提案内容と請求書発行フローの見直しについて',
+    '',
+    '1. A社案件の進捗',
+    '田中より、A社への見積書を本日提出済みとの報告。先方より来週金曜までに正式発注の意向を確認済み。契約金額は月額80万円、契約期間は12ヶ月を想定。',
+    '',
+    '2. サーバー障害の振り返り',
+    '佐藤より、先週発生した本番環境の障害について報告。原因はDBコネクションプールの枯渇であり、応急対応は完了済みだが、恒久対策としてオートスケーリング設定の見直しが必要。対応期限は7月末。',
+    '',
+    '3. 請求書発行業務の課題',
+    '山本より、月末の請求書発行作業に毎月20時間程度かかっており、手作業でのミスが月に2〜3件発生している課題が共有された。テンプレート化と自動チェックの導入を検討する。',
+    '',
+    '4. 採用計画',
+    '鈴木より、カスタマーサクセス部門の増員について提案。来月から中途採用を1名開始する方向で合意。',
+    '',
+    '決定事項:',
+    '- A社との契約書ドラフトを佐藤が来週水曜までに作成する',
+    '- オートスケーリング設定の見直しを佐藤が7月31日までに完了する',
+    '- 請求書発行フローの自動化検討を山本が中心に進め、来月の定例で提案する',
+    '- カスタマーサクセスの中途採用を鈴木が来週から開始する',
+    '',
+    'リスク:',
+    '- A社の正式発注が遅れた場合、今期の売上目標達成が困難になる可能性がある',
+    '- オートスケーリング対応が遅れると、同様の障害が再発するリスクがある',
+    '- 請求書発行の手作業ミスが是正されない場合、顧客からの信頼低下につながる可能性がある'
+  ].join('\n');
+
+  let lastAnalysisContext = '';
+
+  function priorityBadge(priority) {
+    const span = el('span', 'badge');
+    const p = String(priority || '').toLowerCase();
+    if (p === 'high' || p === '高') {
+      span.classList.add('priority-high');
+      span.textContent = '高';
+    } else if (p === 'low' || p === '低') {
+      span.classList.add('priority-low');
+      span.textContent = '低';
+    } else {
+      span.classList.add('priority-medium');
+      span.textContent = '中';
+    }
+    return span;
+  }
+
+  function sentimentInfo(sentiment) {
+    if (sentiment === 'positive') return { text: 'ポジティブ', cls: 'sentiment-positive' };
+    if (sentiment === 'negative') return { text: 'ネガティブ', cls: 'sentiment-negative' };
+    return { text: 'ニュートラル', cls: 'sentiment-neutral' };
+  }
+
+  function renderAnalyzeResults(result) {
+    qs('#resSummary').textContent = result.summary || '';
+
+    const sentiment = sentimentInfo(result.sentiment);
+    const sentimentEl = qs('#resSentiment');
+    sentimentEl.className = 'badge ' + sentiment.cls;
+    sentimentEl.textContent = sentiment.text;
+
+    const decisionsEl = qs('#resDecisions');
+    decisionsEl.innerHTML = '';
+    (result.decisions || []).forEach(function (d) {
+      decisionsEl.appendChild(el('li', null, d));
+    });
+    if (!result.decisions || !result.decisions.length) {
+      decisionsEl.appendChild(el('li', null, '該当なし'));
+    }
+
+    const risksEl = qs('#resRisks');
+    risksEl.innerHTML = '';
+    (result.risks || []).forEach(function (r) {
+      risksEl.appendChild(el('li', null, r));
+    });
+    if (!result.risks || !result.risks.length) {
+      risksEl.appendChild(el('li', null, '該当なし'));
+    }
+
+    const tasksBody = qs('#resTasks');
+    tasksBody.innerHTML = '';
+    const tasks = result.tasks || [];
+    if (!tasks.length) {
+      const tr = document.createElement('tr');
+      const td = el('td', 'empty-row', 'タスクが見つかりませんでした');
+      td.colSpan = 4;
+      tr.appendChild(td);
+      tasksBody.appendChild(tr);
+    } else {
+      tasks.forEach(function (t) {
+        const tr = document.createElement('tr');
+        tr.appendChild(el('td', null, t.title || '-'));
+        tr.appendChild(el('td', null, t.assignee || '-'));
+        tr.appendChild(el('td', null, t.due || '-'));
+        const priorityTd = document.createElement('td');
+        priorityTd.appendChild(priorityBadge(t.priority));
+        tr.appendChild(priorityTd);
+        tasksBody.appendChild(tr);
+      });
+    }
+
+    qs('#analyzeResults').classList.remove('hidden');
+  }
+
+  function buildAnalysisContextText(result) {
+    const lines = [];
+    lines.push('要約: ' + (result.summary || ''));
+    if (result.decisions && result.decisions.length) {
+      lines.push('決定事項: ' + result.decisions.join(' / '));
+    }
+    if (result.tasks && result.tasks.length) {
+      lines.push('タスク: ' + result.tasks.map(function (t) {
+        return (t.title || '') + '(担当:' + (t.assignee || '-') + ' 期限:' + (t.due || '-') + ' 優先度:' + (t.priority || '-') + ')';
+      }).join(' / '));
+    }
+    if (result.risks && result.risks.length) {
+      lines.push('リスク: ' + result.risks.join(' / '));
+    }
+    lines.push('センチメント: ' + (result.sentiment || 'neutral'));
+    return lines.join('\n');
+  }
+
+  function initAnalyzeView() {
+    qs('#btnLoadSample').addEventListener('click', function () {
+      qs('#analyzeInput').value = SAMPLE_MINUTES;
+    });
+
+    qs('#btnAnalyze').addEventListener('click', async function () {
+      const text = qs('#analyzeInput').value.trim();
+      if (!text) {
+        toast('分析するテキストを入力してください。', 'error');
+        return;
+      }
+      const type = qs('#analyzeType').value;
+      const btn = qs('#btnAnalyze');
+      btn.disabled = true;
+      qs('#analyzeLoading').classList.remove('hidden');
+      qs('#analyzeResults').classList.add('hidden');
+
+      try {
+        const result = await post('/api/analyze', { text: text, type: type });
+        renderAnalyzeResults(result);
+        lastAnalysisContext = buildAnalysisContextText(result);
+        toast('分析が完了しました。', 'success');
+      } catch (e) {
+        // toast already shown
+      } finally {
+        btn.disabled = false;
+        qs('#analyzeLoading').classList.add('hidden');
+      }
+    });
+  }
+
+  /* ---------------------------- Chat ---------------------------- */
+
+  let chatHistory = [];
+
+  function appendChatMessage(role, content, pending) {
+    const wrap = qs('#chatMessages');
+    const bubble = el('div', 'chat-msg ' + (role === 'user' ? 'chat-msg-user' : 'chat-msg-assistant') + (pending ? ' chat-msg-pending' : ''));
+    bubble.textContent = content;
+    wrap.appendChild(bubble);
+    wrap.scrollTop = wrap.scrollHeight;
+    return bubble;
+  }
+
+  function initChat() {
+    async function sendChat() {
+      const input = qs('#chatInput');
+      const text = input.value.trim();
+      if (!text) return;
+
+      appendChatMessage('user', text);
+      chatHistory.push({ role: 'user', content: text });
+      input.value = '';
+
+      const pendingBubble = appendChatMessage('assistant', '考えています...', true);
+      qs('#btnChatSend').disabled = true;
+
+      try {
+        const data = await post('/api/chat', {
+          messages: chatHistory,
+          context: lastAnalysisContext || undefined
+        });
+        pendingBubble.textContent = data.reply || '';
+        pendingBubble.classList.remove('chat-msg-pending');
+        chatHistory.push({ role: 'assistant', content: data.reply || '' });
+      } catch (e) {
+        pendingBubble.remove();
+        chatHistory.pop();
+      } finally {
+        qs('#btnChatSend').disabled = false;
+      }
+    }
+
+    qs('#btnChatSend').addEventListener('click', sendChat);
+    qs('#chatInput').addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        sendChat();
+      }
+    });
+  }
+
+  /* ---------------------------- パイプライン ---------------------------- */
+
+  function buildFlowDiagram(steps) {
+    const wrap = el('div', 'flow-diagram');
+    (steps || []).forEach(function (step, i) {
+      const stepEl = el('div', 'flow-step');
+      stepEl.dataset.stepIndex = String(i);
+      stepEl.appendChild(el('span', 'flow-step-name', step.name || step.type || ('ステップ' + (i + 1))));
+      stepEl.appendChild(el('span', 'flow-step-status', ''));
+      wrap.appendChild(stepEl);
+      if (i < steps.length - 1) {
+        wrap.appendChild(el('span', 'flow-arrow', '→'));
+      }
+    });
+    return wrap;
+  }
+
+  function renderPipelineCard(pipeline) {
+    const card = el('div', 'pipeline-card');
+    card.dataset.pipelineId = pipeline.id;
+
+    const header = el('div', 'pipeline-card-header');
+    header.appendChild(el('h3', null, pipeline.name || '無題のパイプライン'));
+    const runBtn = el('button', 'btn btn-primary btn-sm btn-run', '実行');
+    runBtn.type = 'button';
+    header.appendChild(runBtn);
+    card.appendChild(header);
+
+    if (pipeline.description) {
+      card.appendChild(el('p', 'pipeline-desc', pipeline.description));
+    }
+
+    const triggerRow = el('div', 'pipeline-trigger');
+    triggerRow.appendChild(el('span', 'tag', 'トリガー'));
+    triggerRow.appendChild(document.createTextNode(pipeline.trigger || '-'));
+    card.appendChild(triggerRow);
+
+    const flow = buildFlowDiagram(pipeline.steps || []);
+    card.appendChild(flow);
+
+    const runLog = el('div', 'run-log hidden');
+    card.appendChild(runLog);
+
+    runBtn.addEventListener('click', function () {
+      runPipeline(pipeline, card, runBtn);
+    });
+
+    return card;
+  }
+
+  function sleep(ms) {
+    return new Promise(function (resolve) { setTimeout(resolve, ms); });
+  }
+
+  async function runPipeline(pipeline, card, runBtn) {
+    runBtn.disabled = true;
+    runBtn.textContent = '実行中...';
+
+    const flowSteps = qsa('.flow-step', card);
+    flowSteps.forEach(function (s) {
+      s.classList.remove('active', 'done', 'failed');
+      const status = qs('.flow-step-status', s);
+      if (status) status.textContent = '';
+    });
+
+    const runLog = qs('.run-log', card);
+    runLog.innerHTML = '';
+    runLog.classList.add('hidden');
+
+    try {
+      const data = await post('/api/pipelines/' + encodeURIComponent(pipeline.id) + '/run', {});
+      const run = data.run;
+      const steps = run.steps || [];
+
+      runLog.classList.remove('hidden');
+
+      for (let i = 0; i < steps.length; i++) {
+        const stepResult = steps[i];
+        const stepEl = flowSteps[i];
+        if (stepEl) stepEl.classList.add('active');
+        await sleep(480);
+
+        if (stepEl) {
+          stepEl.classList.remove('active');
+          stepEl.classList.add(stepResult.status === 'failed' ? 'failed' : 'done');
+          const statusLabel = qs('.flow-step-status', stepEl);
+          if (statusLabel) statusLabel.textContent = stepResult.status === 'failed' ? '失敗' : '完了';
+        }
+
+        const logItem = el('div', 'run-log-item');
+        logItem.appendChild(el('span', 'rl-name', stepResult.name || ('ステップ' + (i + 1))));
+        logItem.appendChild(el('span', null, stepResult.output || ''));
+        runLog.appendChild(logItem);
+      }
+
+      if (run.status === 'success') {
+        toast((run.savedMinutes || 0) + '分の作業を自動化しました', 'success');
+      } else {
+        toast('パイプラインの実行中にエラーが発生しました', 'error');
+      }
+
+      loadPipelineRuns();
+    } catch (e) {
+      // toast already shown by api()
+    } finally {
+      runBtn.disabled = false;
+      runBtn.textContent = '実行';
+    }
+  }
+
+  async function loadPipelineRuns() {
+    try {
+      const runsData = await get('/api/runs');
+      const nameMap = {};
+      pipelinesCache.forEach(function (p) { nameMap[p.id] = p.name; });
+      renderRunsTable(qs('#pipelineRunsBody'), runsData.runs, nameMap);
+    } catch (e) {
+      renderRunsTable(qs('#pipelineRunsBody'), []);
+    }
+  }
+
+  async function loadPipelines() {
+    const list = qs('#pipelinesList');
+    try {
+      const data = await get('/api/pipelines');
+      pipelinesCache = data.pipelines || [];
+      list.innerHTML = '';
+      if (!pipelinesCache.length) {
+        list.appendChild(el('p', 'empty-state', 'パイプラインがまだありません。「AI自動化発見」から作成できます。'));
+      } else {
+        pipelinesCache.forEach(function (p) {
+          list.appendChild(renderPipelineCard(p));
+        });
+      }
+      loadPipelineRuns();
+    } catch (e) {
+      list.innerHTML = '';
+      list.appendChild(el('p', 'empty-state', 'パイプラインを読み込めませんでした。'));
+    }
+  }
+
+  /* ---------------------------- AI自動化発見 ---------------------------- */
+
+  function renderSuggestionCard(suggestion) {
+    const card = el('div', 'suggestion-card');
+    card.appendChild(el('h3', null, suggestion.title || '自動化の提案'));
+    card.appendChild(el('p', 'suggestion-desc', suggestion.description || ''));
+
+    const metricRow = el('div', 'suggestion-metric');
+    const bigNum = el('span', 'big-num', String(suggestion.estimatedSavingMinutesPerWeek != null ? suggestion.estimatedSavingMinutesPerWeek : '-'));
+    metricRow.appendChild(bigNum);
+    metricRow.appendChild(el('span', 'big-num-label', '分/週 削減見込み'));
+    card.appendChild(metricRow);
+
+    const confidenceRow = el('div', 'confidence-row');
+    const confidencePct = Math.round((suggestion.confidence || 0) * 100);
+    const labelRow = el('div', 'confidence-label');
+    labelRow.appendChild(el('span', null, 'AIの確信度'));
+    labelRow.appendChild(el('span', null, confidencePct + '%'));
+    confidenceRow.appendChild(labelRow);
+    const barBg = el('div', 'confidence-bar-bg');
+    const barFill = el('div', 'confidence-bar-fill');
+    barBg.appendChild(barFill);
+    confidenceRow.appendChild(barBg);
+    card.appendChild(confidenceRow);
+    requestAnimationFrame(function () {
+      requestAnimationFrame(function () { barFill.style.width = confidencePct + '%'; });
+    });
+
+    const adoptBtn = el('button', 'btn btn-primary btn-adopt', 'このパイプラインを採用');
+    adoptBtn.type = 'button';
+    adoptBtn.addEventListener('click', async function () {
+      adoptBtn.disabled = true;
+      adoptBtn.textContent = '採用中...';
+      try {
+        await post('/api/discover/' + encodeURIComponent(suggestion.id) + '/adopt', {});
+        adoptBtn.textContent = '採用済み';
+        adoptBtn.classList.add('adopted');
+        toast('パイプラインを採用しました。実行してみましょう。', 'success');
+        setTimeout(function () {
+          location.hash = '#pipelines';
+        }, 700);
+      } catch (e) {
+        adoptBtn.disabled = false;
+        adoptBtn.textContent = 'このパイプラインを採用';
+      }
+    });
+    card.appendChild(adoptBtn);
+
+    return card;
+  }
+
+  function initDiscoverView() {
+    qs('#btnDiscover').addEventListener('click', async function () {
+      const btn = qs('#btnDiscover');
+      const loading = qs('#discoverLoading');
+      const results = qs('#discoverResults');
+
+      btn.disabled = true;
+      loading.classList.remove('hidden');
+      results.innerHTML = '';
+
+      try {
+        const data = await post('/api/discover', {});
+        const suggestions = data.suggestions || [];
+        if (!suggestions.length) {
+          results.appendChild(el('p', 'empty-state', '自動化できそうな業務は見つかりませんでした。'));
+        } else {
+          suggestions.forEach(function (s) {
+            results.appendChild(renderSuggestionCard(s));
+          });
+          toast(suggestions.length + '件の自動化候補を発見しました', 'success');
+        }
+      } catch (e) {
+        // toast already shown
+      } finally {
+        btn.disabled = false;
+        loading.classList.add('hidden');
+      }
+    });
+  }
+
+  /* ---------------------------- Init ---------------------------- */
+
+  document.addEventListener('DOMContentLoaded', function () {
+    initAnalyzeView();
+    initChat();
+    initDiscoverView();
+    loadHealth();
+    router();
+  });
+
+})();
+</script>
+
+</body>
+</html>
