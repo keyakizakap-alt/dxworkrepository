@@ -1,0 +1,21 @@
+{
+  "name": "dxworkrepository",
+  "owner": {
+    "name": "keyakizakap-alt",
+    "url": "https://github.com/keyakizakap-alt/dxworkrepository"
+  },
+  "metadata": {
+    "description": "業務効率化のための Agent Plugins v1.0.0 準拠プラグイン集",
+    "version": "1.0.0"
+  },
+  "plugins": [
+    {
+      "name": "agent-plugins-kit",
+      "source": "./plugins/agent-plugins-kit",
+      "description": "Author, validate, migrate, and export Agent Plugins v1.0.0 packages so skills and MCP servers stay portable across AI agent clients.",
+      "version": "1.0.0",
+      "license": "MIT",
+      "keywords": ["agent-plugins", "agent-skills", "mcp", "portability", "dx"]
+    }
+  ]
+}

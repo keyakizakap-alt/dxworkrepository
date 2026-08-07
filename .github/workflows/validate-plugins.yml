@@ -1,0 +1,26 @@
+name: Validate Agent Plugins
+
+on:
+  push:
+    paths:
+      - "plugins/**"
+      - ".github/workflows/validate-plugins.yml"
+  pull_request:
+    paths:
+      - "plugins/**"
+      - ".github/workflows/validate-plugins.yml"
+  workflow_dispatch:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      # The validator uses the standard library only, so there is nothing to install.
+      - name: Validate every plugin against Agent Plugins v1.0.0
+        run: python3 plugins/agent-plugins-kit/scripts/ap_validate.py plugins/*/ --strict

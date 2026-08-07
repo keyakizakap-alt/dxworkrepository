@@ -1,0 +1,20 @@
+{
+  "name": "agent-plugins-kit",
+  "displayName": "Agent Plugins Kit",
+  "version": "1.0.0",
+  "description": "Author, validate, migrate, and export Agent Plugins v1.0.0 packages so skills and MCP servers stay portable across AI agent clients.",
+  "author": {
+    "name": "dxworkrepository"
+  },
+  "homepage": "https://agent-plugins.org/",
+  "repository": "https://github.com/keyakizakap-alt/dxworkrepository",
+  "license": "MIT",
+  "keywords": [
+    "agent-plugins",
+    "agent-skills",
+    "mcp",
+    "portability",
+    "interoperability",
+    "dx"
+  ]
+}
