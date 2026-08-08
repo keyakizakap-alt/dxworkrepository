@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OrcaRouter 壁打ちボット</title>
+<link rel="stylesheet" href="assets/styles.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <span class="brand-mark" aria-hidden="true">🐋</span>
+    <div>
+      <h1>OrcaRouter 壁打ちボット</h1>
+      <p class="brand-sub">公式情報・活用事例をもとに導入検討を詰めるためのツール</p>
+    </div>
+  </div>
+  <div class="topbar-actions">
+    <span id="conn-badge" class="badge badge-warn">未設定</span>
+    <button type="button" id="btn-settings" class="btn btn-ghost">設定</button>
+  </div>
+</header>
+
+<nav class="tabs" role="tablist">
+  <button type="button" class="tab is-active" role="tab" data-tab="chat" aria-selected="true">壁打ち</button>
+  <button type="button" class="tab" role="tab" data-tab="kb" aria-selected="false">知識ベース</button>
+  <button type="button" class="tab" role="tab" data-tab="calc" aria-selected="false">コスト試算</button>
+</nav>
+
+<main>
+  <!-- ── 壁打ちタブ ─────────────────────────────── -->
+  <section id="panel-chat" class="panel is-active" role="tabpanel">
+    <div class="modebar" id="modebar" role="group" aria-label="壁打ちモード"></div>
+    <p class="mode-desc" id="mode-desc"></p>
+
+    <div id="messages" class="messages" aria-live="polite"></div>
+
+    <div id="starters" class="starters"></div>
+
+    <form id="composer" class="composer">
+      <textarea id="input" rows="3" placeholder="例：月のLLM費用が80万円くらい。導入する価値ある？　（Ctrl/⌘+Enter で送信）"></textarea>
+      <div class="composer-actions">
+        <span class="hint" id="composer-hint"></span>
+        <button type="button" id="btn-export" class="btn btn-ghost">会話を書き出す</button>
+        <button type="button" id="btn-stop" class="btn btn-ghost" hidden>停止</button>
+        <button type="submit" id="btn-send" class="btn btn-primary">送信</button>
+      </div>
+    </form>
+  </section>
+
+  <!-- ── 知識ベースタブ ─────────────────────────── -->
+  <section id="panel-kb" class="panel" role="tabpanel">
+    <div class="kb-toolbar">
+      <input type="search" id="kb-search" placeholder="知識ベースを検索（例：料金、ガードレール、MCP）">
+      <span class="hint" id="kb-count"></span>
+    </div>
+    <div id="kb-notes" class="callout callout-warn"></div>
+    <div id="kb-body" class="kb-body"></div>
+  </section>
+
+  <!-- ── コスト試算タブ ─────────────────────────── -->
+  <section id="panel-calc" class="panel" role="tabpanel">
+    <div class="callout callout-warn">
+      <strong>これは試算であって実測ではありません。</strong>
+      削減率のレンジは提供元が公表した内部ベンチマーク値（固定モデル運用比で 47〜71%）に基づきます。独立検証されたものではないため、
+      実際の効果は自社ワークロードでの PoC で確認してください。
+    </div>
+
+    <div class="calc-grid">
+      <div class="calc-inputs">
+        <label>
+          月額の LLM 支出
+          <div class="row">
+            <input type="number" id="calc-spend" value="10000" min="0" step="100">
+            <select id="calc-currency">
+              <option value="usd">USD ($)</option>
+              <option value="jpy">JPY (円)</option>
+            </select>
+          </div>
+        </label>
+
+        <label>
+          定型タスクの比率：<output id="calc-routine-out">65</output>%
+          <input type="range" id="calc-routine" min="0" max="100" step="5" value="65">
+          <span class="hint">提供元の試算前提は 65%（残り 35% が高度推論）</span>
+        </label>
+
+        <label>
+          想定削減率：<output id="calc-rate-out">47</output>%
+          <input type="range" id="calc-rate" min="0" max="75" step="1" value="47">
+          <span class="hint">公表レンジ 47〜71%。既定は保守的に下限の 47%</span>
+        </label>
+
+        <label class="checkline">
+          <input type="checkbox" id="calc-team" checked>
+          Team プラン（$499/月）の費用を差し引く
+        </label>
+      </div>
+
+      <div class="calc-output">
+        <div class="stat">
+          <span class="stat-label">月間の削減見込み</span>
+          <span class="stat-value" id="out-monthly">—</span>
+        </div>
+        <div class="stat">
+          <span class="stat-label">年間の削減見込み（総額）</span>
+          <span class="stat-value" id="out-yearly">—</span>
+        </div>
+        <div class="stat stat-hero">
+          <span class="stat-label">年間の純削減額（プラン費用控除後）</span>
+          <span class="stat-value" id="out-net">—</span>
+        </div>
+        <div class="stat">
+          <span class="stat-label">投資回収期間</span>
+          <span class="stat-value" id="out-payback">—</span>
+        </div>
+        <p class="hint" id="out-note"></p>
+        <button type="button" id="btn-to-chat" class="btn btn-primary">この前提で壁打ちする</button>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- ── 設定ダイアログ ───────────────────────────── -->
+<dialog id="settings" class="settings">
+  <form method="dialog" class="settings-form">
+    <h2>接続設定</h2>
+    <p class="hint">
+      API キーはこのブラウザの localStorage にのみ保存され、どこにも送信されません（LLM プロバイダへのリクエストを除く）。
+      リポジトリにキーがコミットされることはありません。
+    </p>
+
+    <label>
+      プロバイダ
+      <select id="set-provider">
+        <option value="orcarouter">OrcaRouter（OpenAI 互換）</option>
+        <option value="anthropic">Anthropic Claude API（直接）</option>
+        <option value="openai-compat">その他 OpenAI 互換（OpenAI / ローカル LLM など）</option>
+      </select>
+    </label>
+
+    <label>
+      Base URL
+      <input type="text" id="set-baseurl" spellcheck="false" placeholder="https://api.orcarouter.ai/v1">
+    </label>
+
+    <label>
+      API キー
+      <input type="password" id="set-apikey" spellcheck="false" autocomplete="off" placeholder="sk-orca-...">
+    </label>
+
+    <label>
+      モデル
+      <input type="text" id="set-model" spellcheck="false" placeholder="orcarouter/auto">
+      <span class="hint" id="set-model-hint"></span>
+    </label>
+
+    <label>
+      temperature：<output id="set-temp-out">0.4</output>
+      <input type="range" id="set-temp" min="0" max="1" step="0.1" value="0.4">
+    </label>
+
+    <label class="checkline">
+      <input type="checkbox" id="set-persist" checked>
+      API キーをこのブラウザに保存する（オフにするとタブを閉じたら消えます）
+    </label>
+
+    <div class="callout callout-info">
+      ブラウザから直接 API を呼ぶため、プロバイダ側が CORS を許可していないと失敗します。
+      <code>403</code> や CORS エラーが出た場合は、同梱の中継サーバを起動して Base URL を
+      <code>http://localhost:8787/v1</code> に向けてください:
+      <code class="block">node tools/orcarouter-chat/scripts/proxy.mjs</code>
+    </div>
+
+    <div class="settings-actions">
+      <button type="button" id="btn-clear-key" class="btn btn-ghost">キーを削除</button>
+      <button value="cancel" class="btn btn-ghost">閉じる</button>
+      <button type="button" id="btn-save-settings" class="btn btn-primary">保存</button>
+    </div>
+  </form>
+</dialog>
+
+<script src="assets/kb.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>
