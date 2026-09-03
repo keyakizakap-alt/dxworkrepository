@@ -12,7 +12,9 @@ memoflow/
     ├── store.js    データモデルと保存（localStorage）
     ├── convert.js  形式変換（Markdown / HTML / テキスト / JSON / ZIP）
     ├── editor.js   ブロックエディタ
-    └── app.js      サイドバー・検索・出力/取込などの画面制御
+    ├── cloud.js    クラウド同期（Supabase, 任意）
+    ├── app.js      サイドバー・検索・出力/取込などの画面制御
+    └── vendor/     同梱ライブラリ（@supabase/supabase-js の UMDビルド, MIT）
 ```
 
 ## 使い方
@@ -62,6 +64,56 @@ python3 -m http.server 8000
 - JSONはMemoFlowのバックアップ形式。取り込み時に「追加」か「すべて置き換え」を選べます
 - 「現在のページの子ページとして取り込む」チェックで、既存の階層に差し込めます
 
+## クラウド同期（任意）
+
+複数端末でメモを同期したい場合は、右上の ☁ ボタンから設定できます。無料の
+[Supabase](https://supabase.com) プロジェクトを1つ使い、あなた専用のデータベースに
+ワークスペースを保存する方式です。**設定しなくてもアプリは通常どおり使えます**（ローカル保存のみ）。
+
+### セットアップ
+
+1. [supabase.com](https://supabase.com) で無料アカウントを作成し、新規プロジェクトを作成
+2. 「Project Settings → API」で **Project URL** と **anon public key** を控える
+3. 「SQL Editor」で以下を実行（アプリの ☁ ダイアログ内にも同じSQLがあります）
+
+   ```sql
+   create table if not exists public.memoflow_workspaces (
+     user_id uuid primary key references auth.users(id) on delete cascade,
+     data jsonb not null,
+     device text,
+     updated_at timestamptz not null default now()
+   );
+
+   alter table public.memoflow_workspaces enable row level security;
+
+   create policy "select own workspace" on public.memoflow_workspaces
+     for select using (auth.uid() = user_id);
+   create policy "insert own workspace" on public.memoflow_workspaces
+     for insert with check (auth.uid() = user_id);
+   create policy "update own workspace" on public.memoflow_workspaces
+     for update using (auth.uid() = user_id);
+
+   alter publication supabase_realtime add table public.memoflow_workspaces;
+   ```
+
+4. 「Authentication → URL Configuration」の Redirect URLs に、このアプリを開くURL
+   （例: `https://example.com/memoflow/`）を追加
+5. アプリの ☁ ボタン → Project URL と anon key を入力して保存 → メールアドレスを入力して
+   ログインリンクを送信 → 届いたメールのリンクを開くとサインイン完了
+
+### 仕組みと注意点
+
+- ログインは**パスワード不要のマジックリンク方式**です
+- Project URL と anon key は**このブラウザの localStorage にのみ**保存され、リポジトリには含まれません
+- サインイン後は、保存のたびに自動でクラウドへアップロードし（オフでも可）、他の端末からの
+  変更は Supabase の Realtime 機能でリアルタイムに取り込まれます
+- 同期は**ワークスペース全体を1つのJSONとして最終更新時刻の新しい方を採用**する方式です
+  （last-write-wins）。同じ端末を1台ずつ使う分には問題ありませんが、**2台以上で同時に編集すると
+  後から保存した側の内容で上書きされ、片方の変更が失われます**。厳密な差分マージは行っていません
+- ☁ ダイアログから手動での「今すぐアップロード」「クラウドから取得」も可能です
+- データは選んだリージョンのSupabaseプロジェクトに保存されます。取り扱いには通常のクラウドサービス
+  利用と同様の注意（無料枠の一時停止、アカウント管理など）が必要です
+
 ## ショートカット
 
 | キー | 動作 |
@@ -89,8 +141,15 @@ python3 -m http.server 8000
 
 ## テスト
 
-Playwright による E2E スモークテストで、以下を確認済みです（29項目 / 全パス）。
+Playwright による E2E スモークテストで、以下を確認済みです（本体29項目＋クラウド同期UI19項目 / 全パス）。
 
 - 初期表示、ページ作成、入力、Markdownショートカット、スラッシュコマンド
 - リロード後のデータ保持、ゴミ箱と復元、ブロック複製、クイック検索、テーマ切替
 - Markdown / HTML の相互変換（往復）、JSON出力、ZIP生成、テキスト取り込み
+- 表（Markdownの `|` 区切り）が段落結合で1行に潰れず保持されること
+- クラウド同期: 未接続時の画面、接続情報の保存/削除、デバイスIDの永続化、
+  未接続でも通常の編集機能に影響がないこと
+
+**未検証の範囲**: 実際のSupabaseプロジェクトを使った、サインイン〜プッシュ〜他端末での
+Realtime受信という一連の動作は、有効な認証情報が必要なためこの開発環境では検証していません。
+上記の「セットアップ」手順で実際のプロジェクトを用意した上で、一度動作確認をお願いします。

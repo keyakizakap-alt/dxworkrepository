@@ -42,7 +42,9 @@
       importDialog: document.getElementById('import-dialog'),
       fileInput: document.getElementById('file-input'),
       importText: document.getElementById('import-text'),
-      dropzone: document.getElementById('dropzone')
+      dropzone: document.getElementById('dropzone'),
+      syncDialog: document.getElementById('sync-dialog'),
+      syncDot: document.getElementById('sync-dot')
     };
 
     S.load();
@@ -55,6 +57,7 @@
     bindDialogs();
     bindShortcuts();
     bindDropzone();
+    bindSync();
 
     renderSidebar();
     renderStats();
@@ -441,6 +444,7 @@
         closeQuickSwitcher();
         closeDialog(dom.exportDialog);
         closeDialog(dom.importDialog);
+        closeDialog(dom.syncDialog);
         E.closeMenus();
       }
     });
@@ -692,6 +696,103 @@
     var dt = e.dataTransfer;
     if (!dt) return false;
     return Array.prototype.indexOf.call(dt.types || [], 'Files') >= 0;
+  }
+
+  /* ---------------- cloud sync ---------------- */
+
+  var STATUS_LABEL = {
+    unconfigured: '未接続',
+    'signed-out': '未サインイン',
+    syncing: '同期中…',
+    synced: '同期済み',
+    error: 'エラー'
+  };
+
+  function bindSync() {
+    document.getElementById('btn-sync').addEventListener('click', function () {
+      renderSync();
+      openDialog(dom.syncDialog);
+    });
+
+    document.getElementById('btn-sync-save-config').addEventListener('click', function () {
+      var url = document.getElementById('sync-url').value.trim();
+      var key = document.getElementById('sync-key').value.trim();
+      if (!url || !key) { U.toast('Project URL と anon key を入力してください', 'error'); return; }
+      global.Cloud.configure(url, key);
+      renderSync();
+    });
+
+    document.getElementById('btn-sync-signin').addEventListener('click', function () {
+      var email = document.getElementById('sync-email').value.trim();
+      if (!email) { U.toast('メールアドレスを入力してください', 'error'); return; }
+      var btn = document.getElementById('btn-sync-signin');
+      btn.disabled = true;
+      global.Cloud.signInWithEmail(email).then(function (res) {
+        btn.disabled = false;
+        if (res && res.error) { U.toast('送信に失敗しました: ' + res.error.message, 'error'); return; }
+        U.toast('ログイン用のリンクを ' + email + ' に送りました');
+      }, function (e) {
+        btn.disabled = false;
+        U.toast('送信に失敗しました: ' + e.message, 'error');
+      });
+    });
+
+    document.getElementById('btn-sync-forget').addEventListener('click', function () {
+      if (!global.confirm('保存した接続情報を削除します。よろしいですか？')) return;
+      global.Cloud.disconnect();
+      renderSync();
+    });
+
+    document.getElementById('btn-sync-push').addEventListener('click', function () {
+      global.Cloud.pushNow().catch(function (e) { U.toast('アップロードに失敗しました: ' + e.message, 'error'); });
+    });
+    document.getElementById('btn-sync-pull').addEventListener('click', function () {
+      if (!global.confirm('クラウド側の内容でこの端末のワークスペースを上書きします。よろしいですか？')) return;
+      global.Cloud.pullNow().then(function () {
+        var last = localStorage.getItem(LAST_PAGE_KEY);
+        openPage(last && S.get(last) && !S.get(last).deletedAt ? last : (S.alive()[0] || {}).id);
+      }).catch(function (e) { U.toast('取得に失敗しました: ' + e.message, 'error'); });
+    });
+    document.getElementById('btn-sync-signout').addEventListener('click', function () {
+      global.Cloud.signOut();
+    });
+    document.getElementById('sync-autosync').addEventListener('change', function (e) {
+      global.Cloud.setAutoSync(e.target.checked);
+    });
+
+    global.Cloud.subscribe(function () { renderSync(); renderSyncDot(); });
+    global.Cloud.init();
+    renderSyncDot();
+  }
+
+  function renderSyncDot() {
+    var snap = global.Cloud.snapshot();
+    dom.syncDot.className = 'sync-dot state-' + (snap.configured ? snap.status : 'off');
+    dom.syncDot.hidden = !snap.configured;
+  }
+
+  function renderSync() {
+    var snap = global.Cloud.snapshot();
+    var setupEl = document.getElementById('sync-setup');
+    var signinEl = document.getElementById('sync-signin');
+    var statusEl = document.getElementById('sync-status');
+    var signedIn = snap.status === 'signed-in' || snap.status === 'syncing' ||
+      snap.status === 'synced' || snap.status === 'error';
+
+    setupEl.hidden = snap.configured;
+    signinEl.hidden = !snap.configured || signedIn;
+    statusEl.hidden = !snap.configured || !signedIn;
+
+    if (!statusEl.hidden) {
+      document.getElementById('sync-email-label').textContent = snap.email || '';
+      document.getElementById('sync-status-label').textContent =
+        (STATUS_LABEL[snap.status] || snap.status) +
+        (snap.status === 'error' && snap.error ? '（' + snap.error + '）' : '') +
+        (snap.lastSyncedAt ? ' ・ 最終同期 ' + U.formatDate(snap.lastSyncedAt) : '');
+      document.getElementById('sync-status-dot').className = 'status-dot state-' + snap.status;
+      document.getElementById('sync-autosync').checked = snap.autoSync;
+    }
+    renderSyncDot();
   }
 
   document.addEventListener('DOMContentLoaded', init);

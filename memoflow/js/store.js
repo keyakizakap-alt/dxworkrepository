@@ -66,11 +66,19 @@
     return state;
   }
 
+  var saveListeners = [];
+  /** Called after every successful write to localStorage (e.g. to trigger cloud sync). */
+  function onSave(fn) { saveListeners.push(fn); return function () {
+    saveListeners = saveListeners.filter(function (f) { return f !== fn; });
+  }; }
+  function notifySaved() { saveListeners.forEach(function (fn) { fn(state); }); }
+
   var save = U.debounce(function () {
     if (!state) return;
     state.updatedAt = U.nowISO();
     try {
       global.localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      notifySaved();
     } catch (e) {
       U.toast('保存に失敗しました（保存容量の上限の可能性があります）', 'error');
       console.error(e);
@@ -80,8 +88,10 @@
   function saveNow() {
     if (!state) return;
     state.updatedAt = U.nowISO();
-    try { global.localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
-    catch (e) { console.error(e); }
+    try {
+      global.localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      notifySaved();
+    } catch (e) { console.error(e); }
   }
 
   /** Accept partially-shaped data (e.g. imported JSON) and fill in defaults. */
@@ -331,6 +341,7 @@
     STORAGE_KEY: STORAGE_KEY,
     SCHEMA: SCHEMA,
     load: load, save: save, saveNow: saveNow, subscribe: subscribe, emit: emit,
+    onSave: onSave,
     newBlock: newBlock, newPage: newPage, normalize: normalize,
     get state() { return state; },
     all: all, alive: alive, trashed: trashed, get: get, children: children,

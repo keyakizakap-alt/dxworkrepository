@@ -67,6 +67,9 @@
         <button id="btn-import" class="ghost-btn" type="button" title="ファイルを取り込む">⬆ <span class="hide-sm">取込</span></button>
         <button id="btn-export" class="ghost-btn" type="button" title="書き出す">⬇ <span class="hide-sm">出力</span></button>
         <button id="btn-print" class="ghost-btn hide-sm" type="button" title="印刷 / PDF (Ctrl+Shift+P)">🖨</button>
+        <button id="btn-sync" class="icon-btn sync-btn" type="button" title="クラウド同期">
+          ☁<span id="sync-dot" class="sync-dot"></span>
+        </button>
         <button id="btn-theme" class="icon-btn" type="button" title="テーマ切替">🌙</button>
       </div>
     </header>
@@ -196,16 +199,104 @@
   </div>
 </div>
 
+<!-- ============ クラウド同期ダイアログ ============ -->
+<div id="sync-dialog" class="dialog">
+  <div class="dialog-panel" role="dialog" aria-label="クラウド同期">
+    <div class="dialog-head">
+      <h2>クラウド同期</h2>
+      <button class="icon-btn" type="button" data-close>✕</button>
+    </div>
+    <div class="dialog-body">
+
+      <!-- 未設定: 接続情報の入力 -->
+      <div id="sync-setup" class="sync-panel" hidden>
+        <p class="dialog-note">
+          複数端末でメモを同期するには、無料の <b>Supabase</b> プロジェクトを1つ用意し、
+          その接続情報をここに入力してください。データはお使いの Supabase プロジェクトにのみ保存され、
+          Project URL と anon key はこのブラウザにだけ保存されます（リポジトリには含まれません）。
+        </p>
+        <label class="field-label">Project URL</label>
+        <input id="sync-url" type="text" placeholder="https://xxxxxxxx.supabase.co" autocomplete="off">
+        <label class="field-label">anon public key</label>
+        <input id="sync-key" type="text" placeholder="eyJhbGciOi..." autocomplete="off">
+        <button id="btn-sync-save-config" class="primary-btn" type="button">保存して接続</button>
+
+        <details class="sync-setup-guide">
+          <summary>初めての方向け: Supabase プロジェクトの準備手順</summary>
+          <ol>
+            <li><a href="https://supabase.com" target="_blank" rel="noopener">supabase.com</a> で無料アカウントを作成し、新規プロジェクトを作成</li>
+            <li>「Project Settings → API」で <b>Project URL</b> と <b>anon public key</b> をコピーし、上に貼り付け</li>
+            <li>「SQL Editor」で以下を実行してテーブルを作成</li>
+          </ol>
+          <pre class="sql-snippet" id="sync-sql">create table if not exists public.memoflow_workspaces (
+  user_id uuid primary key references auth.users(id) on delete cascade,
+  data jsonb not null,
+  device text,
+  updated_at timestamptz not null default now()
+);
+
+alter table public.memoflow_workspaces enable row level security;
+
+create policy "select own workspace" on public.memoflow_workspaces
+  for select using (auth.uid() = user_id);
+create policy "insert own workspace" on public.memoflow_workspaces
+  for insert with check (auth.uid() = user_id);
+create policy "update own workspace" on public.memoflow_workspaces
+  for update using (auth.uid() = user_id);
+
+alter publication supabase_realtime add table public.memoflow_workspaces;</pre>
+          <p class="dialog-note">
+            「Authentication → Providers」で Email を有効にし（デフォルトで有効）、
+            「Authentication → URL Configuration」の Redirect URLs に、このアプリを開くURLを追加してください。
+            ログインはパスワード不要の「マジックリンク」方式です。
+          </p>
+        </details>
+      </div>
+
+      <!-- 設定済み: サインイン -->
+      <div id="sync-signin" class="sync-panel" hidden>
+        <p class="dialog-note">メールアドレス宛にログイン用のリンクを送ります。パスワードは不要です。</p>
+        <label class="field-label">メールアドレス</label>
+        <input id="sync-email" type="email" placeholder="you@example.com" autocomplete="email">
+        <button id="btn-sync-signin" class="primary-btn" type="button">ログインリンクを送る</button>
+        <button id="btn-sync-forget" class="link-btn sync-forget" type="button">接続設定を削除する</button>
+      </div>
+
+      <!-- サインイン済み -->
+      <div id="sync-status" class="sync-panel" hidden>
+        <div class="sync-status-row">
+          <span id="sync-status-dot" class="status-dot"></span>
+          <div class="sync-status-text">
+            <div id="sync-email-label" class="sync-email"></div>
+            <div id="sync-status-label" class="muted"></div>
+          </div>
+        </div>
+        <label class="import-child">
+          <input id="sync-autosync" type="checkbox"> 自動同期を有効にする（保存のたびに自動でアップロード）
+        </label>
+        <div class="sync-actions">
+          <button id="btn-sync-push" class="ghost-btn" type="button">⬆ 今すぐアップロード</button>
+          <button id="btn-sync-pull" class="ghost-btn" type="button">⬇ クラウドから取得</button>
+        </div>
+        <button id="btn-sync-signout" class="link-btn sync-forget" type="button">サインアウト</button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
 <div id="dropzone" class="dropzone">
   <div class="dropzone-inner">📥 ファイルをドロップして取り込む</div>
 </div>
 
 <div id="toast" class="toast"></div>
 
+<script src="js/vendor/supabase.js"></script>
 <script src="js/util.js"></script>
 <script src="js/store.js"></script>
 <script src="js/convert.js"></script>
 <script src="js/editor.js"></script>
+<script src="js/cloud.js"></script>
 <script src="js/app.js"></script>
 </body>
 </html>

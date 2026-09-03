@@ -695,6 +695,74 @@ html[data-theme="dark"] .block[data-type="code"] .block-body { background: #1012
 .dialog-body .primary-btn { width: auto; padding: 9px 18px; }
 
 /* ============================================================
+   cloud sync
+   ============================================================ */
+.sync-btn { position: relative; }
+.sync-dot {
+  position: absolute;
+  right: 4px; top: 4px;
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--text-muted);
+  border: 1.5px solid var(--bg);
+}
+.sync-dot.state-signed-out { background: var(--text-muted); }
+.sync-dot.state-syncing { background: #e8a63a; }
+.sync-dot.state-synced { background: #2fa66a; }
+.sync-dot.state-error { background: var(--danger); }
+
+.sync-panel .field-label {
+  display: block;
+  margin: 14px 0 5px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-soft);
+}
+.sync-panel .field-label:first-of-type { margin-top: 4px; }
+.sync-panel input[type="text"],
+.sync-panel input[type="email"] {
+  width: 100%;
+  padding: 9px 11px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+  outline: none;
+  font-size: 13.5px;
+  font-family: var(--mono);
+}
+.sync-panel input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.sync-panel .primary-btn { margin-top: 14px; }
+
+.sync-setup-guide { margin-top: 18px; font-size: 13px; color: var(--text-soft); }
+.sync-setup-guide summary { cursor: pointer; font-weight: 600; color: var(--text); }
+.sync-setup-guide ol { padding-left: 20px; margin: 10px 0; }
+.sync-setup-guide li { margin: 4px 0; }
+.sql-snippet {
+  margin: 10px 0;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-sub);
+  font-family: var(--mono);
+  font-size: 12px;
+  line-height: 1.6;
+  overflow-x: auto;
+  white-space: pre;
+}
+
+.sync-forget { display: block; margin-top: 16px; }
+
+.sync-status-row { display: flex; align-items: center; gap: 10px; }
+.status-dot { flex: none; width: 10px; height: 10px; border-radius: 50%; background: var(--text-muted); }
+.status-dot.state-signed-in, .status-dot.state-synced { background: #2fa66a; }
+.status-dot.state-syncing { background: #e8a63a; }
+.status-dot.state-error { background: var(--danger); }
+.sync-email { font-size: 14px; font-weight: 650; }
+
+.sync-panel .import-child { margin: 16px 0 0; }
+.sync-actions { display: flex; flex-wrap: wrap; gap: 8px; margin: 16px 0 4px; }
+
+/* ============================================================
    empty state / dropzone / toast
    ============================================================ */
 .empty-state { flex: 1; display: flex; align-items: center; justify-content: center; padding: 24px; }
