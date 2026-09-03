@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="ja" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MemoFlow - メモアプリ</title>
+<meta name="description" content="講座・プロジェクト・議事録などを1か所にまとめ、Markdown / HTML / テキスト / JSON / ZIP / PDF で出力・取り込みできるメモアプリ">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%97%92%EF%B8%8F%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div id="app" class="app">
+
+  <!-- ============ サイドバー ============ -->
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-head">
+      <div class="brand">
+        <span class="brand-mark">🗒️</span>
+        <span class="brand-name">MemoFlow</span>
+      </div>
+      <button id="btn-sidebar-close" class="icon-btn" type="button" title="サイドバーを閉じる (Ctrl+\)">«</button>
+    </div>
+
+    <div class="sidebar-actions">
+      <button id="btn-new-page" class="primary-btn" type="button">＋ 新規ページ</button>
+    </div>
+
+    <div class="sidebar-search">
+      <span class="search-icon">🔍</span>
+      <input id="sidebar-search" type="search" placeholder="ページを絞り込む" autocomplete="off">
+    </div>
+
+    <nav class="sidebar-scroll">
+      <section id="favorite-section" class="tree-section" hidden>
+        <h2 class="tree-heading">お気に入り</h2>
+        <div id="favorite-list"></div>
+      </section>
+
+      <section class="tree-section">
+        <h2 class="tree-heading">ページ</h2>
+        <div id="page-tree"></div>
+      </section>
+
+      <section id="trash-section" class="tree-section" hidden>
+        <h2 class="tree-heading">
+          ゴミ箱
+          <button id="btn-empty-trash" class="link-btn" type="button">空にする</button>
+        </h2>
+        <div id="trash-list"></div>
+      </section>
+    </nav>
+
+    <div class="sidebar-foot">
+      <span id="workspace-stats" class="muted"></span>
+      <span class="muted tiny">データはこのブラウザに保存されます</span>
+    </div>
+  </aside>
+
+  <!-- ============ メイン ============ -->
+  <main class="main">
+    <header class="topbar">
+      <button id="btn-toggle-sidebar" class="icon-btn" type="button" title="サイドバー表示切替 (Ctrl+\)">☰</button>
+      <div id="breadcrumb" class="breadcrumb"></div>
+      <div class="topbar-actions">
+        <button id="btn-search" class="ghost-btn" type="button" title="ページ検索 (Ctrl+K)">🔍 <span class="hide-sm">検索</span></button>
+        <button id="btn-import" class="ghost-btn" type="button" title="ファイルを取り込む">⬆ <span class="hide-sm">取込</span></button>
+        <button id="btn-export" class="ghost-btn" type="button" title="書き出す">⬇ <span class="hide-sm">出力</span></button>
+        <button id="btn-print" class="ghost-btn hide-sm" type="button" title="印刷 / PDF (Ctrl+Shift+P)">🖨</button>
+        <button id="btn-theme" class="icon-btn" type="button" title="テーマ切替">🌙</button>
+      </div>
+    </header>
+
+    <div id="empty-state" class="empty-state" hidden>
+      <div class="empty-card">
+        <div class="empty-icon">🗒️</div>
+        <h2>ページがありません</h2>
+        <p>講座メモ、プロジェクト記録、議事録など、まずは1ページ作ってみましょう。</p>
+        <button id="btn-start-page" class="primary-btn" type="button">＋ 最初のページを作る</button>
+      </div>
+    </div>
+
+    <div id="document" class="document">
+      <div class="page-head">
+        <div class="page-head-row">
+          <button id="page-icon" class="page-icon" type="button" title="アイコンを変更">📄</button>
+          <input id="page-title" class="page-title" type="text" placeholder="無題のページ" autocomplete="off">
+          <div class="page-head-actions">
+            <button id="btn-favorite" class="icon-btn" type="button" title="お気に入りに追加">☆</button>
+            <div class="menu-wrap">
+              <button id="btn-page-menu" class="icon-btn" type="button" title="ページ操作">⋯</button>
+              <div id="page-menu" class="page-menu">
+                <button id="btn-add-subpage" class="menu-item" type="button">＋ 子ページを追加</button>
+                <button id="btn-delete-page" class="menu-item danger" type="button">🗑 ゴミ箱へ移動</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div id="page-meta" class="page-meta"></div>
+      </div>
+
+      <div id="editor" class="editor"></div>
+
+      <div class="editor-foot">
+        <button class="add-block-btn" type="button" onclick="Editor.appendBlock('paragraph')">＋ ブロックを追加</button>
+        <span class="hint">ヒント: 本文で <kbd>/</kbd> を押すとメニュー、<kbd>#</kbd>+スペースで見出し、<kbd>-</kbd>+スペースで箇条書き</span>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- ============ クイック検索 ============ -->
+<div id="quick-switcher" class="overlay">
+  <div class="quick-panel" role="dialog" aria-label="ページ検索">
+    <input id="quick-input" type="text" placeholder="ページ名や本文で検索…" autocomplete="off">
+    <div id="quick-results" class="quick-results"></div>
+    <div class="quick-foot"><kbd>↑</kbd><kbd>↓</kbd> 移動 ・ <kbd>Enter</kbd> 開く ・ <kbd>Esc</kbd> 閉じる</div>
+  </div>
+</div>
+
+<!-- ============ 出力ダイアログ ============ -->
+<div id="export-dialog" class="dialog">
+  <div class="dialog-panel" role="dialog" aria-label="書き出し">
+    <div class="dialog-head">
+      <h2>書き出し</h2>
+      <button class="icon-btn" type="button" data-close>✕</button>
+    </div>
+    <div class="dialog-body">
+      <h3 class="dialog-section">このページ<span class="dialog-target" id="export-target"></span></h3>
+      <div class="export-grid">
+        <button class="export-card" type="button" data-export="md">
+          <span class="export-icon">📝</span><span class="export-name">Markdown</span><span class="export-desc">.md / 他ツールへ移行しやすい</span>
+        </button>
+        <button class="export-card" type="button" data-export="html">
+          <span class="export-icon">🌐</span><span class="export-name">HTML</span><span class="export-desc">.html / 書式付きで共有</span>
+        </button>
+        <button class="export-card" type="button" data-export="txt">
+          <span class="export-icon">📄</span><span class="export-name">テキスト</span><span class="export-desc">.txt / どこでも開ける</span>
+        </button>
+        <button class="export-card" type="button" data-export="json-page">
+          <span class="export-icon">🧩</span><span class="export-name">JSON</span><span class="export-desc">.json / 子ページごと完全保存</span>
+        </button>
+        <button class="export-card" type="button" data-export="pdf">
+          <span class="export-icon">🖨</span><span class="export-name">PDF / 印刷</span><span class="export-desc">印刷画面から PDF 保存</span>
+        </button>
+        <button class="export-card" type="button" data-export="clipboard-md">
+          <span class="export-icon">📋</span><span class="export-name">コピー</span><span class="export-desc">Markdown をクリップボードへ</span>
+        </button>
+      </div>
+
+      <h3 class="dialog-section">ワークスペース全体</h3>
+      <div class="export-grid">
+        <button class="export-card" type="button" data-export="zip-all">
+          <span class="export-icon">🗜</span><span class="export-name">ZIP（推奨）</span><span class="export-desc">ページごとの .md ＋ JSON</span>
+        </button>
+        <button class="export-card" type="button" data-export="md-all">
+          <span class="export-icon">📚</span><span class="export-name">Markdown 1ファイル</span><span class="export-desc">全ページを1つの .md に</span>
+        </button>
+        <button class="export-card" type="button" data-export="json-all">
+          <span class="export-icon">💾</span><span class="export-name">JSON バックアップ</span><span class="export-desc">この形式なら完全に復元可能</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 取込ダイアログ ============ -->
+<div id="import-dialog" class="dialog">
+  <div class="dialog-panel" role="dialog" aria-label="取り込み">
+    <div class="dialog-head">
+      <h2>取り込み</h2>
+      <button class="icon-btn" type="button" data-close>✕</button>
+    </div>
+    <div class="dialog-body">
+      <h3 class="dialog-section">ファイルから</h3>
+      <p class="dialog-note">
+        対応形式: <b>.md</b> / <b>.markdown</b> / <b>.txt</b> / <b>.html</b> / <b>.json</b>（MemoFlow のバックアップ）。
+        複数ファイルの同時選択、画面へのドラッグ＆ドロップにも対応しています。
+      </p>
+      <button id="btn-choose-file" class="primary-btn" type="button">ファイルを選ぶ</button>
+      <input id="file-input" type="file" multiple accept=".md,.markdown,.mdown,.txt,.text,.html,.htm,.json" hidden>
+
+      <h3 class="dialog-section">テキストを貼り付け</h3>
+      <textarea id="import-text" rows="8" placeholder="ここに Markdown やテキストを貼り付けてください"></textarea>
+      <div class="import-options">
+        <label><input type="radio" name="import-format" value="md" checked> Markdown</label>
+        <label><input type="radio" name="import-format" value="txt"> プレーンテキスト</label>
+        <label><input type="radio" name="import-format" value="html"> HTML</label>
+        <label><input type="radio" name="import-format" value="json"> JSON</label>
+      </div>
+      <label class="import-child">
+        <input id="import-as-child" type="checkbox"> 現在のページの子ページとして取り込む
+      </label>
+      <button id="btn-import-text" class="primary-btn" type="button">取り込む</button>
+    </div>
+  </div>
+</div>
+
+<div id="dropzone" class="dropzone">
+  <div class="dropzone-inner">📥 ファイルをドロップして取り込む</div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script src="js/util.js"></script>
+<script src="js/store.js"></script>
+<script src="js/convert.js"></script>
+<script src="js/editor.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
