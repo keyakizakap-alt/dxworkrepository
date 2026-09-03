@@ -606,13 +606,19 @@
         var data = JSON.parse(text);
         var incoming = S.normalize(data);
         if (!incoming.pages.length) { U.toast('JSON にページが含まれていません', 'error'); return 0; }
-        var mode = global.confirm(
-          'JSON に ' + incoming.pages.length + ' ページ含まれています。\n' +
-          '［OK］ 今のワークスペースに追加\n［キャンセル］ すべて置き換え'
-        ) ? 'merge' : 'replace';
-        if (mode === 'replace' &&
-          !global.confirm('現在のすべてのページを置き換えます。取り消せません。よろしいですか？')) {
-          return 0;
+        // Batch imports (multiple files at once) always merge: a destructive
+        // "replace" here would wipe pages already imported earlier in the
+        // same batch, so that choice is only offered for a single JSON file.
+        var mode = 'merge';
+        if (!quiet) {
+          mode = global.confirm(
+            'JSON に ' + incoming.pages.length + ' ページ含まれています。\n' +
+            '［OK］ 今のワークスペースに追加\n［キャンセル］ すべて置き換え'
+          ) ? 'merge' : 'replace';
+          if (mode === 'replace' &&
+            !global.confirm('現在のすべてのページを置き換えます。取り消せません。よろしいですか？')) {
+            return 0;
+          }
         }
         var added = S.replaceWorkspace(data, mode);
         if (!quiet) finishImport(added.length, added[0] && added[0].id);

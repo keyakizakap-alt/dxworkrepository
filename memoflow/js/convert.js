@@ -116,6 +116,13 @@
    * Markdown -> blocks
    * ======================================================= */
 
+  function isTableRow(line) {
+    return /^\s*\|.*\|\s*$/.test(line || '');
+  }
+  function isTableSeparator(line) {
+    return /^\s*\|?\s*:?-{2,}:?\s*(\|\s*:?-{2,}:?\s*)*\|?\s*$/.test(line || '');
+  }
+
   function markdownToBlocks(md) {
     var lines = String(md || '').replace(/\r\n?/g, '\n').split('\n');
     var blocks = [];
@@ -194,11 +201,22 @@
         i++; continue;
       }
 
+      // table: not modeled as a block type, so keep it verbatim (lossless)
+      // instead of letting the paragraph joiner below scramble the rows.
+      if (isTableRow(line) && i + 1 < lines.length && isTableSeparator(lines[i + 1])) {
+        var tableBuf = [line];
+        i++;
+        while (i < lines.length && isTableRow(lines[i])) { tableBuf.push(lines[i]); i++; }
+        blocks.push(S.newBlock('code', U.escapeHtml(tableBuf.join('\n'))));
+        continue;
+      }
+
       // paragraph: join following non-blank, non-special lines
       var para = [line.trim()];
       i++;
       while (i < lines.length && lines[i].trim() &&
-        !/^(#{1,6}\s|```|\s*[-*+]\s|\s*\d+[.)]\s|\s*>|\s*(-{3,}|\*{3,}|_{3,})\s*$)/.test(lines[i])) {
+        !/^(#{1,6}\s|```|\s*[-*+]\s|\s*\d+[.)]\s|\s*>|\s*(-{3,}|\*{3,}|_{3,})\s*$)/.test(lines[i]) &&
+        !isTableRow(lines[i])) {
         para.push(lines[i].trim());
         i++;
       }
