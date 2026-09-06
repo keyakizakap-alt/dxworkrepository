@@ -7,7 +7,11 @@
 
 | スキル | 内容 |
 |---|---|
-| [`ai-product-playbook`](.claude/skills/ai-product-playbook/) | LLM を組み込んだ日本語 Web プロダクトの設計・実装・出荷の流儀。CHIGIRI Beauty 系 3 本 / ニュアンス税関 / オシ・カレ / こいのかたち / 引っ越しアプリの開発で確定した判断基準を集約したもの |
+| [`work-directives`](.claude/skills/work-directives/) | **作業を始める前に読む。** 開発で繰り返し出してきた指示 — 進め方、実行前に確認を取る操作、成果物の禁則（捏造しない・推測で埋めない）、リサーチの裏取り、アイデアの絞り込み方 |
+| [`ai-product-playbook`](.claude/skills/ai-product-playbook/) | **設計を変える前に読む。** LLM を組み込んだ日本語 Web プロダクトの設計・実装・出荷の流儀 — LLM の境界、API の防御、コスト管理、品質ゲート |
+
+どちらも CHIGIRI Beauty 系 3 本 / ニュアンス税関 / オシ・カレ / こいのかたち / 引っ越しアプリの
+開発経緯から抽出したもの。前者は**どう進めるか**、後者は**何を作るか**を扱う。
 
 各アプリのリポジトリにはスキルを複製せず、`CLAUDE.md` からここを参照する形にしている
 （複製すると更新時に内容がずれるため）。
@@ -21,7 +25,9 @@
 ```bash
 git clone https://github.com/keyakizakap-alt/dxworkrepository.git ~/src/dxworkrepository
 mkdir -p ~/.claude/skills
-ln -s ~/src/dxworkrepository/.claude/skills/ai-product-playbook ~/.claude/skills/ai-product-playbook
+for s in work-directives ai-product-playbook; do
+  ln -s ~/src/dxworkrepository/.claude/skills/$s ~/.claude/skills/$s
+done
 ```
 
 シンボリックリンクにしておくと、`git pull` した内容がそのまま反映される。
