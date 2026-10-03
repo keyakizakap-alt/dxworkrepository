@@ -1,0 +1,33 @@
+# Cloudflare Workers 無料枠で動かす設定（LINE Harness と同じ考え方）
+name = "line-secretary"
+main = "src/worker.ts"
+compatibility_date = "2026-09-01"
+compatibility_flags = ["nodejs_compat"]
+
+[assets]
+directory = "./dist/public"
+binding = "ASSETS"
+run_worker_first = ["/api/*", "/webhook"]
+
+[[d1_databases]]
+binding = "DB"
+database_name = "line-secretary"
+# `wrangler d1 create line-secretary` で表示される ID に置き換えてください
+database_id = "00000000-0000-0000-0000-000000000000"
+migrations_dir = "migrations"
+
+[triggers]
+# 毎分、送信予定のお知らせを確認する（Cron Trigger は無料枠で利用可）
+crons = ["* * * * *"]
+
+[vars]
+MOCK_MODE = "0"
+MESSAGE_RETENTION_HOURS = "72"
+MONTHLY_MESSAGE_LIMIT = "200"
+LLM_PROVIDER = "none"
+GEMINI_MODEL = "gemini-3.1-flash-lite"
+BOT_NAME = "ことづて"
+
+# 秘密情報は `wrangler secret put` で登録してください（ここには書かない）
+#   LINE_CHANNEL_SECRET / LINE_CHANNEL_ACCESS_TOKEN / ENCRYPTION_KEY
+#   GEMINI_API_KEY（LLM を使う場合） / ADMIN_PASSWORD（管理画面を使う場合）
