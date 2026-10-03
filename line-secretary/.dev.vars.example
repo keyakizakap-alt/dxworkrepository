@@ -1,0 +1,7 @@
+# `cp .dev.vars.example .dev.vars` してから値を入れてください（.dev.vars はコミットしない）
+LINE_CHANNEL_SECRET=
+LINE_CHANNEL_ACCESS_TOKEN=
+# 32バイトの鍵を base64 で: node -e "console.log(crypto.randomBytes(32).toString('base64'))"
+ENCRYPTION_KEY=
+GEMINI_API_KEY=
+ADMIN_PASSWORD=
